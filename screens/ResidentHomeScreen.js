@@ -1,24 +1,29 @@
+import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 
-export default function AnnouncementScreen() {
+const ResidentHomeScreen = () => {
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Announcements</Text>
+      <Text style={styles.title}>Resident Dashboard</Text>
+      {/* Add resident-specific content here */}
     </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
     padding: 20,
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#000000',
     marginBottom: 20,
+    color: '#000000',
   },
-  // Add any other styles specific to announcements
-}); 
+});
+
+export default ResidentHomeScreen; 
