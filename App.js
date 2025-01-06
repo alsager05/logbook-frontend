@@ -7,6 +7,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import { createStackNavigator } from '@react-navigation/stack';
 
+
 // Import screens
 import SettingsScreen from './screens/SettingsScreen';
 import AnnouncementScreen from './screens/AnnouncementScreen';
@@ -60,7 +61,7 @@ export default function App() {
       Alert.alert('Error', 'Please enter username, password, and select a role');
       return;
     }
-    // Here you would typically make an API call to validate credentials
+   
     setIsLoggedIn(true);
   };
 
@@ -68,7 +69,7 @@ export default function App() {
     return (
       <View style={styles.container}>
         <Animated.Image
-          source={require('./assets/logo.png')}
+          source={require('./assets/kbog-logo.jpg')}
           style={[
             styles.logo,
             {
