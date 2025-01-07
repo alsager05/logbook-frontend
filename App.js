@@ -7,18 +7,19 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import { createStackNavigator } from '@react-navigation/stack';
 
-
-
+import LoginScreen from './screens/LoginScreen';
 import SettingsScreen from './screens/SettingsScreen';
 import AnnouncementScreen from './screens/AnnouncementScreen';
 import TutorHomeScreen from './screens/TutorHomeScreen';
-import ResidentHomeScreen from './screens/ResidentHomeScreen.js';
+import ResidentHomeScreen from './screens/ResidentHomeScreen';
 import OBSScreen from './screens/OBSScreen';
 import GYNScreen from './screens/GYNScreen';
 import EPAScreen from './screens/EPAScreen';
-
+import ResidentListScreen from './screens/ResidentListScreen';
+import ResidentDetailsScreen from './screens/ResidentDetailsScreen';
 
 const Tab = createBottomTabNavigator();
+const Stack = createStackNavigator();
 
 // Create a Stack navigator for Settings
 const SettingsStack = createStackNavigator();
@@ -31,8 +32,26 @@ function SettingsStackScreen() {
         component={SettingsScreen}
         options={{ headerTitle: 'Settings' }}
       />
-      {/* Add other settings screens here */}
     </SettingsStack.Navigator>
+  );
+}
+
+function HomeStackScreen() {
+  return (
+    <Stack.Navigator>
+      <Stack.Screen 
+        name="ResidentHome" 
+        component={ResidentListScreen}
+        options={{ headerTitle: 'Residents' }}
+      />
+      <Stack.Screen 
+        name="ResidentDetails" 
+        component={ResidentDetailsScreen}
+        options={({ route }) => ({ 
+          headerTitle: route.params.resident.name 
+        })}
+      />
+    </Stack.Navigator>
   );
 }
 
@@ -45,21 +64,74 @@ const Colors = {
   inactive: '#888888',  
 }
 
-const Stack = createStackNavigator();
-const HomeStack = createStackNavigator();
-
-function HomeStackScreen() {
+function TutorTabNavigator() {
   return (
-    <HomeStack.Navigator>
-      <HomeStack.Screen 
-        name="TutorHome" 
-        component={TutorHomeScreen}
-        options={{ headerTitle: 'Home' }}
+    <Tab.Navigator
+      screenOptions={({ route }) => ({
+        tabBarIcon: ({ focused, color, size }) => {
+          let iconName;
+
+          if (route.name === 'Home') {
+            iconName = focused ? 'home' : 'home-outline';
+          } else if (route.name === 'Announcements') {
+            iconName = focused ? 'megaphone' : 'megaphone-outline';
+          } else if (route.name === 'Settings') {
+            iconName = focused ? 'settings' : 'settings-outline';
+          } else if (route.name === 'Residents') {
+            iconName = focused ? 'people' : 'people-outline';
+          }
+
+          return <Ionicons name={iconName} size={size} color={color} />;
+        },
+        tabBarActiveTintColor: Colors.primary,
+        tabBarInactiveTintColor: Colors.inactive,
+      })}
+    >
+      <Tab.Screen name="Home" component={TutorHomeScreen} />
+      <Tab.Screen name="Residents" component={HomeStackScreen} />
+      <Tab.Screen name="Announcements" component={AnnouncementScreen} />
+      <Tab.Screen 
+        name="Settings" 
+        component={SettingsStackScreen}
+        options={{
+          headerShown: false
+        }}
       />
-      <HomeStack.Screen name="OBS" component={OBSScreen} />
-      <HomeStack.Screen name="GYN" component={GYNScreen} />
-      <HomeStack.Screen name="EPA" component={EPAScreen} />
-    </HomeStack.Navigator>
+    </Tab.Navigator>
+  );
+}
+
+function ResidentTabNavigator() {
+  return (
+    <Tab.Navigator
+      screenOptions={({ route }) => ({
+        tabBarIcon: ({ focused, color, size }) => {
+          let iconName;
+
+          if (route.name === 'Home') {
+            iconName = focused ? 'home' : 'home-outline';
+          } else if (route.name === 'Announcements') {
+            iconName = focused ? 'megaphone' : 'megaphone-outline';
+          } else if (route.name === 'Settings') {
+            iconName = focused ? 'settings' : 'settings-outline';
+          }
+
+          return <Ionicons name={iconName} size={size} color={color} />;
+        },
+        tabBarActiveTintColor: Colors.primary,
+        tabBarInactiveTintColor: Colors.inactive,
+      })}
+    >
+      <Tab.Screen name="Home" component={HomeStackScreen} />
+      <Tab.Screen name="Announcements" component={AnnouncementScreen} />
+      <Tab.Screen 
+        name="Settings" 
+        component={SettingsStackScreen}
+        options={{
+          headerShown: false
+        }}
+      />
+    </Tab.Navigator>
   );
 }
 
@@ -83,37 +155,7 @@ export default function App() {
 
   return (
     <NavigationContainer>
-      <Tab.Navigator
-        screenOptions={({ route }) => ({
-          tabBarIcon: ({ focused, color, size }) => {
-            let iconName;
-
-            if (route.name === 'Home') {
-              iconName = focused ? 'home' : 'home-outline';
-             } else if (route.name === 'Announcements') {
-              iconName = focused ? 'megaphone' : 'megaphone-outline';
-            } else if (route.name === 'Settings') {
-              iconName = focused ? 'settings' : 'settings-outline';
-            }
-
-            return <Ionicons name={iconName} size={size} color={color} />;
-          },
-          tabBarActiveTintColor: Colors.primary,
-          tabBarInactiveTintColor: Colors.inactive,
-        })}
-      >
-        <Tab.Screen 
-          name="Home" 
-       />
-        <Tab.Screen name="Announcements" component={AnnouncementScreen}         />
-        <Tab.Screen 
-          name="Settings" 
-          component={SettingsStackScreen}
-          options={{
-            headerShown: false // Hide the header for the tab screen
-          }}
-        />
-      </Tab.Navigator>
+      {role === 'tutor' ? <TutorTabNavigator /> : <ResidentTabNavigator />}
     </NavigationContainer>
   );
 }
@@ -186,20 +228,3 @@ const styles = StyleSheet.create({
     marginBottom: 40,
   },
 });
-
-const Stack = createStackNavigator();
-
-function HomeStackScreen() {
-  return (
-    <Stack.Navigator>
-      <Stack.Screen 
-        name="ResidentHome" 
-        component={ResidentHomeScreen}
-        options={{ headerTitle: 'Home' }}
-      />
-      <Stack.Screen name="OBS" component={OBSScreen} />
-      <Stack.Screen name="GYN" component={GYNScreen} />
-      <Stack.Screen name="EPA" component={EPAScreen} />
-    </Stack.Navigator>
-  );
-}
