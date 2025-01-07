@@ -17,6 +17,7 @@ import OBSScreen from './screens/OBSScreen';
 import GYNScreen from './screens/GYNScreen';
 import EPAScreen from './screens/EPAScreen';
 
+
 const Tab = createBottomTabNavigator();
 
 // Create a Stack navigator for Settings
@@ -44,87 +45,39 @@ const Colors = {
   inactive: '#888888',  
 }
 
+const Stack = createStackNavigator();
+const HomeStack = createStackNavigator();
+
+function HomeStackScreen() {
+  return (
+    <HomeStack.Navigator>
+      <HomeStack.Screen 
+        name="TutorHome" 
+        component={TutorHomeScreen}
+        options={{ headerTitle: 'Home' }}
+      />
+      <HomeStack.Screen name="OBS" component={OBSScreen} />
+      <HomeStack.Screen name="GYN" component={GYNScreen} />
+      <HomeStack.Screen name="EPA" component={EPAScreen} />
+    </HomeStack.Navigator>
+  );
+}
+
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
   const [role, setRole] = useState('');
-  const fadeAnim = useRef(new Animated.Value(0)).current;
 
-  useEffect(() => {
-    Animated.timing(fadeAnim, {
-      toValue: 1,
-      duration: 1000,
-      useNativeDriver: true,
-    }).start();
-  }, []);
-
-  const handleLogin = () => {
-    if (username.trim() === '' || password.trim() === '' || !role) {
-      Alert.alert('Error', 'Please enter username, password, and select a role');
-      return;
-    }
-   
+  const handleLogin = (userRole) => {
+    setRole(userRole);
     setIsLoggedIn(true);
   };
 
   if (!isLoggedIn) {
     return (
-      <View style={styles.container}>
-        <Animated.Image
-          source={require('./assets/kbog-logo.jpg')}
-          style={[
-            styles.logo,
-            {
-              opacity: fadeAnim,
-              transform: [{
-                translateY: fadeAnim.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [50, 0]
-                })
-              }]
-            }
-          ]}
-          resizeMode="contain"
-        />
-        <Text style={styles.title}>Login</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Username"
-          value={username}
-          onChangeText={setUsername}
-          autoCapitalize="none"
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Password"
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-        />
-        <View style={styles.roleContainer}>
-          <TouchableOpacity 
-            style={[styles.roleButton, role === 'tutor' && styles.roleButtonActive]}
-            onPress={() => setRole('tutor')}
-          >
-            <Text style={[styles.roleButtonText, role === 'tutor' && styles.roleButtonTextActive]}>
-              Tutor
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity 
-            style={[styles.roleButton, role === 'resident' && styles.roleButtonActive]}
-            onPress={() => setRole('resident')}
-          >
-            <Text style={[styles.roleButtonText, role === 'resident' && styles.roleButtonTextActive]}>
-              Resident
-            </Text>
-          </TouchableOpacity>
-        </View>
-        <TouchableOpacity style={styles.button} onPress={handleLogin}>
-          <Text style={styles.buttonText}>Login</Text>
-        </TouchableOpacity>
+      <>
+        <LoginScreen onLogin={handleLogin} />
         <StatusBar style="auto" />
-      </View>
+      </>
     );
   }
 
@@ -151,8 +104,7 @@ export default function App() {
       >
         <Tab.Screen 
           name="Home" 
-          component={role === 'tutor' ? TutorHomeScreen : HomeStackScreen} 
-        />
+       />
         <Tab.Screen name="Announcements" component={AnnouncementScreen}         />
         <Tab.Screen 
           name="Settings" 
