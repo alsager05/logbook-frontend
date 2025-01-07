@@ -1,7 +1,7 @@
 import 'react-native-gesture-handler';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View, TextInput, TouchableOpacity, Alert, Image, Animated } from 'react-native';
-import { useState, useRef, useEffect } from 'react';
+import { StyleSheet, Text, View, TextInput, TouchableOpacity, Alert } from 'react-native';
+import { useState } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
@@ -11,12 +11,7 @@ import LoginScreen from './screens/LoginScreen';
 import SettingsScreen from './screens/SettingsScreen';
 import AnnouncementScreen from './screens/AnnouncementScreen';
 import TutorHomeScreen from './screens/TutorHomeScreen';
-import ResidentHomeScreen from './screens/ResidentHomeScreen';
-import OBSScreen from './screens/OBSScreen';
-import GYNScreen from './screens/GYNScreen';
-import EPAScreen from './screens/EPAScreen';
-import ResidentListScreen from './screens/ResidentListScreen';
-import ResidentDetailsScreen from './screens/ResidentDetailsScreen';
+
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -24,7 +19,7 @@ const Stack = createStackNavigator();
 // Create a Stack navigator for Settings
 const SettingsStack = createStackNavigator();
 
-function SettingsStackScreen() {
+function SettingsStackScreen({ role }) {
   return (
     <SettingsStack.Navigator>
       <SettingsStack.Screen 
@@ -139,8 +134,12 @@ export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [role, setRole] = useState('');
 
-  const handleLogin = (userRole) => {
-    setRole(userRole);
+  const handleLogin = () => {
+    if (username.trim() === '' || password.trim() === '' || !role) {
+      Alert.alert('Error', 'Please enter username, password, and select a role');
+      return;
+    }
+    // Here you would typically make an API call to validate credentials
     setIsLoggedIn(true);
   };
 
@@ -155,7 +154,6 @@ export default function App() {
 
   return (
     <NavigationContainer>
-      {role === 'tutor' ? <TutorTabNavigator /> : <ResidentTabNavigator />}
     </NavigationContainer>
   );
 }
@@ -221,10 +219,5 @@ const styles = StyleSheet.create({
   },
   roleButtonTextActive: {
     color: Colors.background,
-  },
-  logo: {
-    width: 200,
-    height: 200,
-    marginBottom: 40,
   },
 });
