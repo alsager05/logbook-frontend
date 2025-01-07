@@ -13,6 +13,9 @@ import SettingsScreen from './screens/SettingsScreen';
 import AnnouncementScreen from './screens/AnnouncementScreen';
 import TutorHomeScreen from './screens/TutorHomeScreen';
 import ResidentHomeScreen from './screens/ResidentHomeScreen.js';
+import OBSScreen from './screens/OBSScreen';
+import GYNScreen from './screens/GYNScreen';
+import EPAScreen from './screens/EPAScreen';
 
 const Tab = createBottomTabNavigator();
 
@@ -148,7 +151,7 @@ export default function App() {
       >
         <Tab.Screen 
           name="Home" 
-          component={role === 'tutor' ? TutorHomeScreen : ResidentHomeScreen} 
+          component={role === 'tutor' ? TutorHomeScreen : HomeStackScreen} 
         />
         <Tab.Screen name="Announcements" component={AnnouncementScreen}         />
         <Tab.Screen 
@@ -231,3 +234,20 @@ const styles = StyleSheet.create({
     marginBottom: 40,
   },
 });
+
+const Stack = createStackNavigator();
+
+function HomeStackScreen() {
+  return (
+    <Stack.Navigator>
+      <Stack.Screen 
+        name="ResidentHome" 
+        component={ResidentHomeScreen}
+        options={{ headerTitle: 'Home' }}
+      />
+      <Stack.Screen name="OBS" component={OBSScreen} />
+      <Stack.Screen name="GYN" component={GYNScreen} />
+      <Stack.Screen name="EPA" component={EPAScreen} />
+    </Stack.Navigator>
+  );
+}
