@@ -1,7 +1,7 @@
 import 'react-native-gesture-handler';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View, TextInput, TouchableOpacity, Alert, Image, Animated } from 'react-native';
-import { useState, useRef, useEffect } from 'react';
+import { StyleSheet, Text, View, TextInput, TouchableOpacity, Alert } from 'react-native';
+import { useState } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
@@ -12,19 +12,25 @@ import SettingsScreen from './screens/SettingsScreen';
 import AnnouncementScreen from './screens/AnnouncementScreen';
 import TutorHomeScreen from './screens/TutorHomeScreen';
 import ResidentHomeScreen from './screens/ResidentHomeScreen.js';
-
+import ResidentProfileScreen from './screens/ResidentProfileScreen.js';
+import TutorProfileScreen from './screens/TutorProfileScreen.js';
 const Tab = createBottomTabNavigator();
 
 // Create a Stack navigator for Settings
 const SettingsStack = createStackNavigator();
 
-function SettingsStackScreen() {
+function SettingsStackScreen({ role }) {
   return (
     <SettingsStack.Navigator>
       <SettingsStack.Screen 
         name="SettingsMain" 
         component={SettingsScreen}
         options={{ headerTitle: 'Settings' }}
+      />
+      <SettingsStack.Screen 
+        name="Profile" 
+        component={role === 'tutor' ? TutorProfileScreen : ResidentProfileScreen}
+        options={{ headerTitle: 'Profile' }}
       />
       {/* Add other settings screens here */}
     </SettingsStack.Navigator>
@@ -45,15 +51,6 @@ export default function App() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState('');
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    Animated.timing(fadeAnim, {
-      toValue: 1,
-      duration: 1000,
-      useNativeDriver: true,
-    }).start();
-  }, []);
 
   const handleLogin = () => {
     if (username.trim() === '' || password.trim() === '' || !role) {
@@ -67,22 +64,6 @@ export default function App() {
   if (!isLoggedIn) {
     return (
       <View style={styles.container}>
-        <Animated.Image
-          source={require('./assets/logo.png')}
-          style={[
-            styles.logo,
-            {
-              opacity: fadeAnim,
-              transform: [{
-                translateY: fadeAnim.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [50, 0]
-                })
-              }]
-            }
-          ]}
-          resizeMode="contain"
-        />
         <Text style={styles.title}>Login</Text>
         <TextInput
           style={styles.input}
@@ -149,12 +130,15 @@ export default function App() {
           name="Home" 
           component={role === 'tutor' ? TutorHomeScreen : ResidentHomeScreen} 
         />
-        <Tab.Screen name="Announcements" component={AnnouncementScreen}         />
+        <Tab.Screen 
+          name="Announcements" 
+          component={AnnouncementScreen} 
+        />
         <Tab.Screen 
           name="Settings" 
-          component={SettingsStackScreen}
+          component={(props) => <SettingsStackScreen {...props} role={role} />}
           options={{
-            headerShown: false // Hide the header for the tab screen
+            headerShown: false
           }}
         />
       </Tab.Navigator>
@@ -223,10 +207,5 @@ const styles = StyleSheet.create({
   },
   roleButtonTextActive: {
     color: Colors.background,
-  },
-  logo: {
-    width: 200,
-    height: 200,
-    marginBottom: 40,
   },
 });
