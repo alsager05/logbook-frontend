@@ -7,13 +7,19 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import { createStackNavigator } from '@react-navigation/stack';
 
-// Import screens
+
+
 import SettingsScreen from './screens/SettingsScreen';
 import AnnouncementScreen from './screens/AnnouncementScreen';
 import TutorHomeScreen from './screens/TutorHomeScreen';
 import ResidentHomeScreen from './screens/ResidentHomeScreen.js';
 import ResidentProfileScreen from './screens/ResidentProfileScreen.js';
 import TutorProfileScreen from './screens/TutorProfileScreen.js';
+import OBSScreen from './screens/OBSScreen';
+import GYNScreen from './screens/GYNScreen';
+import EPAScreen from './screens/EPAScreen';
+import LoginScreen from './screens/LoginScreen.js';
+
 const Tab = createBottomTabNavigator();
 
 // Create a Stack navigator for Settings
@@ -38,18 +44,34 @@ function SettingsStackScreen({ role }) {
 }
 
 const Colors = {
-  primary: '#000000',    // Black instead of blue
-  background: '#FFFFFF', // White
-  text: '#000000',      // Black
-  textLight: '#666666', // Gray for secondary text
-  border: '#CCCCCC',    // Light gray for borders
-  inactive: '#888888',  // Gray for inactive elements
+  primary: '#000000',    
+  background: '#FFFFFF', 
+  text: '#000000',      
+  textLight: '#666666',
+  border: '#CCCCCC',   
+  inactive: '#888888',  
+}
+
+const Stack = createStackNavigator();
+const HomeStack = createStackNavigator();
+
+function HomeStackScreen() {
+  return (
+    <HomeStack.Navigator>
+      <HomeStack.Screen 
+        name="TutorHome" 
+        component={TutorHomeScreen}
+        options={{ headerTitle: 'Home' }}
+      />
+      <HomeStack.Screen name="OBS" component={OBSScreen} />
+      <HomeStack.Screen name="GYN" component={GYNScreen} />
+      <HomeStack.Screen name="EPA" component={EPAScreen} />
+    </HomeStack.Navigator>
+  );
 }
 
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
   const [role, setRole] = useState('');
 
   const handleLogin = () => {
@@ -63,45 +85,10 @@ export default function App() {
 
   if (!isLoggedIn) {
     return (
-      <View style={styles.container}>
-        <Text style={styles.title}>Login</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Username"
-          value={username}
-          onChangeText={setUsername}
-          autoCapitalize="none"
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Password"
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-        />
-        <View style={styles.roleContainer}>
-          <TouchableOpacity 
-            style={[styles.roleButton, role === 'tutor' && styles.roleButtonActive]}
-            onPress={() => setRole('tutor')}
-          >
-            <Text style={[styles.roleButtonText, role === 'tutor' && styles.roleButtonTextActive]}>
-              Tutor
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity 
-            style={[styles.roleButton, role === 'resident' && styles.roleButtonActive]}
-            onPress={() => setRole('resident')}
-          >
-            <Text style={[styles.roleButtonText, role === 'resident' && styles.roleButtonTextActive]}>
-              Resident
-            </Text>
-          </TouchableOpacity>
-        </View>
-        <TouchableOpacity style={styles.button} onPress={handleLogin}>
-          <Text style={styles.buttonText}>Login</Text>
-        </TouchableOpacity>
+      <>
+        <LoginScreen onLogin={handleLogin} />
         <StatusBar style="auto" />
-      </View>
+      </>
     );
   }
 
@@ -209,3 +196,20 @@ const styles = StyleSheet.create({
     color: Colors.background,
   },
 });
+
+// const Stack = createStackNavigator();
+
+// function HomeStackScreen() {
+//   return (
+//     <Stack.Navigator>
+//       <Stack.Screen 
+//         name="ResidentHome" 
+//         component={ResidentHomeScreen}
+//         options={{ headerTitle: 'Home' }}
+//       />
+//       <Stack.Screen name="OBS" component={OBSScreen} />
+//       <Stack.Screen name="GYN" component={GYNScreen} />
+//       <Stack.Screen name="EPA" component={EPAScreen} />
+//     </Stack.Navigator>
+//   );
+// }

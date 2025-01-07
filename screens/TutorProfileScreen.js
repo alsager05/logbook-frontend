@@ -14,7 +14,7 @@ const TutorProfileScreen = () => {
     trainingCenter: "Maternity Hospital",
     position: "Program Director", // One of: faculty chair, program director, assistant program director, site coordinator, clinical tutor
     phone: "123-4567",
-    office: "KIMS,, Floor 4, Room 1"
+    office: "KIMS, Floor 4, Room 101"
   };
 
   return (
