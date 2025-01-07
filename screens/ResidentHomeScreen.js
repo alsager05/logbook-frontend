@@ -1,6 +1,5 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 
 export default function ResidentHomeScreen({ navigation }) {
   return (
@@ -10,7 +9,6 @@ export default function ResidentHomeScreen({ navigation }) {
           style={styles.iconButton}
           onPress={() => navigation.navigate('OBS')}
         >
-          <Ionicons name="medical" size={50} color="black" />
           <Text style={styles.iconText}>OBS</Text>
         </TouchableOpacity>
 
@@ -18,7 +16,6 @@ export default function ResidentHomeScreen({ navigation }) {
           style={styles.iconButton}
           onPress={() => navigation.navigate('GYN')}
         >
-          <Ionicons name="woman" size={50} color="black" />
           <Text style={styles.iconText}>GYN</Text>
         </TouchableOpacity>
 
@@ -26,7 +23,6 @@ export default function ResidentHomeScreen({ navigation }) {
           style={styles.iconButton}
           onPress={() => navigation.navigate('EPA')}
         >
-          <Ionicons name="document-text" size={50} color="black" />
           <Text style={styles.iconText}>EPA</Text>
         </TouchableOpacity>
       </View>
@@ -41,18 +37,30 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   iconsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
+    flexDirection: 'column',
+    justifyContent: 'center',
     alignItems: 'center',
     marginTop: 50,
+    gap: 30,
   },
   iconButton: {
     alignItems: 'center',
+    justifyContent: 'center',
     padding: 20,
+    width: '80%',
+    backgroundColor: '#f5f5f5',
+    borderRadius: 10,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
   },
   iconText: {
-    marginTop: 10,
-    fontSize: 16,
+    fontSize: 20,
     fontWeight: 'bold',
   },
 }); 
