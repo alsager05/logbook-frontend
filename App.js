@@ -7,8 +7,6 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import { createStackNavigator } from '@react-navigation/stack';
 
-
-
 import SettingsScreen from './screens/SettingsScreen';
 import AnnouncementScreen from './screens/AnnouncementScreen';
 import TutorHomeScreen from './screens/TutorHomeScreen';
@@ -18,30 +16,8 @@ import TutorProfileScreen from './screens/TutorProfileScreen.js';
 import OBSScreen from './screens/OBSScreen';
 import GYNScreen from './screens/GYNScreen';
 import EPAScreen from './screens/EPAScreen';
-import LoginScreen from './screens/LoginScreen.js';
+import LoginScreen from './screens/LoginScreen';
 
-const Tab = createBottomTabNavigator();
-
-// Create a Stack navigator for Settings
-const SettingsStack = createStackNavigator();
-
-function SettingsStackScreen({ role }) {
-  return (
-    <SettingsStack.Navigator>
-      <SettingsStack.Screen 
-        name="SettingsMain" 
-        component={SettingsScreen}
-        options={{ headerTitle: 'Settings' }}
-      />
-      <SettingsStack.Screen 
-        name="Profile" 
-        component={role === 'tutor' ? TutorProfileScreen : ResidentProfileScreen}
-        options={{ headerTitle: 'Profile' }}
-      />
-      {/* Add other settings screens here */}
-    </SettingsStack.Navigator>
-  );
-}
 
 const Colors = {
   primary: '#000000',    
@@ -52,8 +28,10 @@ const Colors = {
   inactive: '#888888',  
 }
 
+const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
 const HomeStack = createStackNavigator();
+const SettingsStack = createStackNavigator();
 
 function HomeStackScreen() {
   return (
@@ -70,26 +48,44 @@ function HomeStackScreen() {
   );
 }
 
+function SettingsStackScreen({ role, onLogout }) {
+  return (
+    <SettingsStack.Navigator>
+      <SettingsStack.Screen 
+        name="SettingsMain" 
+        component={(props) => <SettingsScreen {...props} onLogout={onLogout} />}
+        options={{ headerTitle: 'Settings' }}
+      />
+      <SettingsStack.Screen 
+        name="Profile" 
+        component={role === 'tutor' ? TutorProfileScreen : ResidentProfileScreen}
+        options={{ headerTitle: 'Profile' }}
+      />
+    </SettingsStack.Navigator>
+  );
+}
+
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [role, setRole] = useState('');
 
-  const handleLogin = () => {
-    if (username.trim() === '' || password.trim() === '' || !role) {
+  const handleLogin = (username, password, selectedRole) => {
+    if (username.trim() === '' || password.trim() === '' || !selectedRole) {
       Alert.alert('Error', 'Please enter username, password, and select a role');
       return;
     }
     // Here you would typically make an API call to validate credentials
+    setRole(selectedRole);
     setIsLoggedIn(true);
   };
 
+  const handleLogout = () => {
+    setIsLoggedIn(false);
+    setRole('');
+  };
+
   if (!isLoggedIn) {
-    return (
-      <>
-        <LoginScreen onLogin={handleLogin} />
-        <StatusBar style="auto" />
-      </>
-    );
+    return <LoginScreen onLogin={handleLogin} />;
   }
 
   return (
@@ -101,7 +97,7 @@ export default function App() {
 
             if (route.name === 'Home') {
               iconName = focused ? 'home' : 'home-outline';
-             } else if (route.name === 'Announcements') {
+            } else if (route.name === 'Announcements') {
               iconName = focused ? 'megaphone' : 'megaphone-outline';
             } else if (route.name === 'Settings') {
               iconName = focused ? 'settings' : 'settings-outline';
@@ -123,7 +119,7 @@ export default function App() {
         />
         <Tab.Screen 
           name="Settings" 
-          component={(props) => <SettingsStackScreen {...props} role={role} />}
+          component={(props) => <SettingsStackScreen {...props} role={role} onLogout={handleLogout} />}
           options={{
             headerShown: false
           }}
@@ -197,19 +193,3 @@ const styles = StyleSheet.create({
   },
 });
 
-// const Stack = createStackNavigator();
-
-// function HomeStackScreen() {
-//   return (
-//     <Stack.Navigator>
-//       <Stack.Screen 
-//         name="ResidentHome" 
-//         component={ResidentHomeScreen}
-//         options={{ headerTitle: 'Home' }}
-//       />
-//       <Stack.Screen name="OBS" component={OBSScreen} />
-//       <Stack.Screen name="GYN" component={GYNScreen} />
-//       <Stack.Screen name="EPA" component={EPAScreen} />
-//     </Stack.Navigator>
-//   );
-// }
