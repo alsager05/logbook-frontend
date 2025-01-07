@@ -1,7 +1,7 @@
 import 'react-native-gesture-handler';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View, TextInput, TouchableOpacity, Alert, Image, Animated } from 'react-native';
-import { useState, useRef, useEffect } from 'react';
+import { StyleSheet, Text, View, TextInput, TouchableOpacity, Alert } from 'react-native';
+import { useState } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
@@ -13,23 +13,30 @@ import SettingsScreen from './screens/SettingsScreen';
 import AnnouncementScreen from './screens/AnnouncementScreen';
 import TutorHomeScreen from './screens/TutorHomeScreen';
 import ResidentHomeScreen from './screens/ResidentHomeScreen.js';
+import ResidentProfileScreen from './screens/ResidentProfileScreen.js';
+import TutorProfileScreen from './screens/TutorProfileScreen.js';
 import OBSScreen from './screens/OBSScreen';
 import GYNScreen from './screens/GYNScreen';
 import EPAScreen from './screens/EPAScreen';
-
+import LoginScreen from './screens/LoginScreen.js';
 
 const Tab = createBottomTabNavigator();
 
 // Create a Stack navigator for Settings
 const SettingsStack = createStackNavigator();
 
-function SettingsStackScreen() {
+function SettingsStackScreen({ role }) {
   return (
     <SettingsStack.Navigator>
       <SettingsStack.Screen 
         name="SettingsMain" 
         component={SettingsScreen}
         options={{ headerTitle: 'Settings' }}
+      />
+      <SettingsStack.Screen 
+        name="Profile" 
+        component={role === 'tutor' ? TutorProfileScreen : ResidentProfileScreen}
+        options={{ headerTitle: 'Profile' }}
       />
       {/* Add other settings screens here */}
     </SettingsStack.Navigator>
@@ -67,8 +74,12 @@ export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [role, setRole] = useState('');
 
-  const handleLogin = (userRole) => {
-    setRole(userRole);
+  const handleLogin = () => {
+    if (username.trim() === '' || password.trim() === '' || !role) {
+      Alert.alert('Error', 'Please enter username, password, and select a role');
+      return;
+    }
+    // Here you would typically make an API call to validate credentials
     setIsLoggedIn(true);
   };
 
@@ -104,13 +115,17 @@ export default function App() {
       >
         <Tab.Screen 
           name="Home" 
-       />
-        <Tab.Screen name="Announcements" component={AnnouncementScreen}         />
+          component={role === 'tutor' ? TutorHomeScreen : ResidentHomeScreen} 
+        />
+        <Tab.Screen 
+          name="Announcements" 
+          component={AnnouncementScreen} 
+        />
         <Tab.Screen 
           name="Settings" 
-          component={SettingsStackScreen}
+          component={(props) => <SettingsStackScreen {...props} role={role} />}
           options={{
-            headerShown: false // Hide the header for the tab screen
+            headerShown: false
           }}
         />
       </Tab.Navigator>
@@ -180,26 +195,21 @@ const styles = StyleSheet.create({
   roleButtonTextActive: {
     color: Colors.background,
   },
-  logo: {
-    width: 200,
-    height: 200,
-    marginBottom: 40,
-  },
 });
 
-const Stack = createStackNavigator();
+// const Stack = createStackNavigator();
 
-function HomeStackScreen() {
-  return (
-    <Stack.Navigator>
-      <Stack.Screen 
-        name="ResidentHome" 
-        component={ResidentHomeScreen}
-        options={{ headerTitle: 'Home' }}
-      />
-      <Stack.Screen name="OBS" component={OBSScreen} />
-      <Stack.Screen name="GYN" component={GYNScreen} />
-      <Stack.Screen name="EPA" component={EPAScreen} />
-    </Stack.Navigator>
-  );
-}
+// function HomeStackScreen() {
+//   return (
+//     <Stack.Navigator>
+//       <Stack.Screen 
+//         name="ResidentHome" 
+//         component={ResidentHomeScreen}
+//         options={{ headerTitle: 'Home' }}
+//       />
+//       <Stack.Screen name="OBS" component={OBSScreen} />
+//       <Stack.Screen name="GYN" component={GYNScreen} />
+//       <Stack.Screen name="EPA" component={EPAScreen} />
+//     </Stack.Navigator>
+//   );
+// }
