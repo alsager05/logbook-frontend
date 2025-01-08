@@ -5,7 +5,8 @@ import {
   StyleSheet, 
   TouchableOpacity, 
   ScrollView,
-  TextInput 
+  TextInput,
+  Image 
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -52,7 +53,6 @@ export default function ResidentListScreen({ navigation }) {
     },
   ];
 
-  // Filter residents based on both name and level in a single search
   const filteredResidents = residents.filter(resident =>
     resident.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     resident.level.toLowerCase().includes(searchQuery.toLowerCase())
@@ -81,11 +81,18 @@ export default function ResidentListScreen({ navigation }) {
               style={styles.button}
               onPress={() => navigation.navigate('ResidentDetails', { resident })}
             >
-              <View style={styles.buttonHeader}>
-                <Text style={styles.buttonText}>{resident.name}</Text>
-                <Text style={styles.levelText}>{resident.level}</Text>
+              <View style={styles.residentInfo}>
+                <View style={styles.avatarContainer}>
+                  <Ionicons name="person-circle" size={50} color="#666" />
+                </View>
+                <View style={styles.textContainer}>
+                  <View style={styles.buttonHeader}>
+                    <Text style={styles.buttonText}>{resident.name}</Text>
+                    <Text style={styles.levelText}>{resident.level}</Text>
+                  </View>
+                  <Text style={styles.subText}>View Progress</Text>
+                </View>
               </View>
-              <Text style={styles.subText}>View Progress</Text>
             </TouchableOpacity>
           ))}
           {filteredResidents.length === 0 && (
@@ -131,7 +138,7 @@ const styles = StyleSheet.create({
     gap: 15,
   },
   button: {
-    padding: 20,
+    padding: 15,
     backgroundColor: '#f5f5f5',
     borderRadius: 10,
     elevation: 2,
@@ -142,6 +149,16 @@ const styles = StyleSheet.create({
     },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
+  },
+  residentInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  avatarContainer: {
+    marginRight: 15,
+  },
+  textContainer: {
+    flex: 1,
   },
   buttonHeader: {
     flexDirection: 'row',

@@ -17,6 +17,7 @@ import GYNScreen from './screens/GYNScreen';
 import EPAScreen from './screens/EPAScreen';
 import ResidentListScreen from './screens/ResidentListScreen';
 import ResidentDetailsScreen from './screens/ResidentDetailsScreen';
+import AnnouncementDetailsScreen from './screens/AnnouncementDetailsScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -50,6 +51,11 @@ function HomeStackScreen() {
         options={({ route }) => ({ 
           headerTitle: route.params.resident.name 
         })}
+      />
+      <Stack.Screen 
+        name="AnnouncementDetails" 
+        component={AnnouncementDetailsScreen}
+        options={{ headerTitle: 'Announcement Details' }}
       />
     </Stack.Navigator>
   );
