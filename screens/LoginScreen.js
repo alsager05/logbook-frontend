@@ -10,12 +10,12 @@ import {
 } from 'react-native';
 
 const Colors = {
-  primary: '#000000',    // Black instead of blue
-  background: '#FFFFFF', // White
-  text: '#000000',      // Black
-  textLight: '#666666', // Gray for secondary text
-  border: '#CCCCCC',    // Light gray for borders
-  inactive: '#888888',  // Gray for inactive elements
+  primary: '#000000',    
+  background: '#FFFFFF', 
+  text: '#000000',      
+  textLight: '#666666', 
+  border: '#CCCCCC',    
+  inactive: '#888888',  
 };
 
 export default function LoginScreen({ onLogin }) {

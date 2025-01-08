@@ -12,6 +12,7 @@ import SettingsScreen from './screens/SettingsScreen';
 import AnnouncementScreen from './screens/AnnouncementScreen';
 import TutorHomeScreen from './screens/TutorHomeScreen';
 
+import AnnouncementDetailsScreen from './screens/AnnouncementDetailsScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -45,6 +46,11 @@ function HomeStackScreen() {
         options={({ route }) => ({ 
           headerTitle: route.params.resident.name 
         })}
+      />
+      <Stack.Screen 
+        name="AnnouncementDetails" 
+        component={AnnouncementDetailsScreen}
+        options={{ headerTitle: 'Announcement Details' }}
       />
     </Stack.Navigator>
   );
