@@ -7,10 +7,18 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import { createStackNavigator } from '@react-navigation/stack';
 
-import LoginScreen from './screens/LoginScreen';
 import SettingsScreen from './screens/SettingsScreen';
 import AnnouncementScreen from './screens/AnnouncementScreen';
 import TutorHomeScreen from './screens/TutorHomeScreen';
+import ResidentHomeScreen from './screens/ResidentHomeScreen.js';
+import ResidentProfileScreen from './screens/ResidentProfileScreen.js';
+import TutorProfileScreen from './screens/TutorProfileScreen.js';
+import OBSScreen from './screens/OBSScreen';
+import GYNScreen from './screens/GYNScreen';
+import EPAScreen from './screens/EPAScreen';
+import LoginScreen from './screens/LoginScreen';
+
+
 
 import AnnouncementDetailsScreen from './screens/AnnouncementDetailsScreen';
 
@@ -65,6 +73,10 @@ const Colors = {
   inactive: '#888888',  
 }
 
+const Tab = createBottomTabNavigator();
+const Stack = createStackNavigator();
+const HomeStack = createStackNavigator();
+const SettingsStack = createStackNavigator();
 function TutorTabNavigator() {
   return (
     <Tab.Navigator
@@ -136,30 +148,84 @@ function ResidentTabNavigator() {
   );
 }
 
+function SettingsStackScreen({ role, onLogout }) {
+  return (
+    <SettingsStack.Navigator>
+      <SettingsStack.Screen 
+        name="SettingsMain" 
+        component={(props) => <SettingsScreen {...props} onLogout={onLogout} />}
+        options={{ headerTitle: 'Settings' }}
+      />
+      <SettingsStack.Screen 
+        name="Profile" 
+        component={role === 'tutor' ? TutorProfileScreen : ResidentProfileScreen}
+        options={{ headerTitle: 'Profile' }}
+      />
+    </SettingsStack.Navigator>
+  );
+}
+
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [role, setRole] = useState('');
 
-  const handleLogin = () => {
-    if (username.trim() === '' || password.trim() === '' || !role) {
+  const handleLogin = (username, password, selectedRole) => {
+    if (username.trim() === '' || password.trim() === '' || !selectedRole) {
       Alert.alert('Error', 'Please enter username, password, and select a role');
       return;
     }
     // Here you would typically make an API call to validate credentials
+    setRole(selectedRole);
     setIsLoggedIn(true);
   };
 
+  const handleLogout = () => {
+    setIsLoggedIn(false);
+    setRole('');
+  };
+
   if (!isLoggedIn) {
-    return (
-      <>
-        <LoginScreen onLogin={handleLogin} />
-        <StatusBar style="auto" />
-      </>
-    );
+    return <LoginScreen onLogin={handleLogin} />;
   }
 
   return (
     <NavigationContainer>
+      <Tab.Navigator
+        screenOptions={({ route }) => ({
+          tabBarIcon: ({ focused, color, size }) => {
+            let iconName;
+
+            if (route.name === 'Home') {
+              iconName = focused ? 'home' : 'home-outline';
+            } else if (route.name === 'Announcements') {
+              iconName = focused ? 'megaphone' : 'megaphone-outline';
+            } else if (route.name === 'Settings') {
+              iconName = focused ? 'settings' : 'settings-outline';
+            }
+
+            return <Ionicons name={iconName} size={size} color={color} />;
+          },
+          tabBarActiveTintColor: Colors.primary,
+          tabBarInactiveTintColor: Colors.inactive,
+        })}
+      >
+        <Tab.Screen 
+          name="Home" 
+          component={role === 'tutor' ? TutorHomeScreen : ResidentHomeScreen} 
+        />
+        <Tab.Screen 
+          name="Announcements" 
+          component={AnnouncementScreen} 
+        />
+        <Tab.Screen 
+          name="Settings" 
+          component={(props) => <SettingsStackScreen {...props} role={role} onLogout={handleLogout} />}
+          options={{
+            headerShown: false
+          }}
+        />
+      </Tab.Navigator>
+
     </NavigationContainer>
   );
 }
@@ -227,3 +293,4 @@ const styles = StyleSheet.create({
     color: Colors.background,
   },
 });
+
