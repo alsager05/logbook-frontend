@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
+
 export default function AnnouncementScreen({ navigation }) {
   const [selectedYear, setSelectedYear] = useState('2024');
   const [selectedMonth, setSelectedMonth] = useState('All');
@@ -149,8 +150,6 @@ export default function AnnouncementScreen({ navigation }) {
               <Text style={styles.imagePlaceholderText}>Tap to view details</Text>
             </TouchableOpacity>
             
-            <Text style={styles.details}>{announcement.details}</Text>
-            
             <Text style={styles.date}>
               Posted on: {new Date(announcement.date).toLocaleDateString()}
             </Text>
@@ -272,12 +271,6 @@ const styles = StyleSheet.create({
     marginTop: 10,
     color: '#666',
     fontSize: 16,
-  },
-  details: {
-    fontSize: 16,
-    color: '#444',
-    marginBottom: 10,
-    lineHeight: 24,
   },
   date: {
     fontSize: 14,
