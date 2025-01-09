@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, SafeAreaView } from 'react-native';
 
 const LoginScreen = ({ onLogin }) => {
-=======
 const Colors = {
   primary: '#000000',    
   background: '#FFFFFF', 
