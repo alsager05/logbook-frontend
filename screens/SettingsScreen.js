@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Switch } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 
 const Colors = {
   primary: '#000000',
@@ -11,8 +12,13 @@ const Colors = {
   inactive: '#888888',
 }
 
-const SettingsScreen = ({ navigation }) => {
+const SettingsScreen = ({ navigation, onLogout }) => {
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+
+  const handleLogout = () => {
+    // Call the onLogout function passed from App.js
+    onLogout();
+  };
 
   const menuItems = [
     { 
@@ -28,8 +34,6 @@ const SettingsScreen = ({ navigation }) => {
       value: notificationsEnabled,
       onValueChange: (newValue) => {
         setNotificationsEnabled(newValue);
-        // Here you would typically update this setting in your app's storage
-        // and handle the actual notification permissions
       },
       description: 'Receive updates and announcements'
     },
@@ -55,9 +59,8 @@ const SettingsScreen = ({ navigation }) => {
       title: 'Logout', 
       icon: 'log-out-outline',
       type: 'link',
-      action: () => {
-        // Add logout logic here
-      }
+      action: handleLogout,
+      textColor: '#FF3B30' // Red color for logout
     },
   ];
 

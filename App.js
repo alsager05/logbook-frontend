@@ -4,21 +4,12 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
 import { Ionicons } from '@expo/vector-icons';
 
-// Import screens
-import LoginScreen from './screens/LoginScreen';
-import TutorHomeScreen from './screens/TutorHomeScreen';
-import ResidentHomeScreen from './screens/ResidentHomeScreen';
-import AnnouncementScreen from './screens/AnnouncementScreen';
-import SettingsScreen from './screens/SettingsScreen';
-import ResidentListScreen from './screens/ResidentListScreen';
-import ResidentDetailsScreen from './screens/ResidentDetailsScreen';
 import AnnouncementDetailsScreen from './screens/AnnouncementDetailsScreen';
 import FormReviewScreen from './screens/FormReviewScreen';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
-// Create Tutor Tab Navigator
 function TutorTabNavigator() {
   return (
     <Tab.Navigator
@@ -75,7 +66,7 @@ function ResidentTabNavigator() {
   );
 }
 
-export default function App() {
+function SettingsStackScreen({ role, onLogout }) {
   return (
     <NavigationContainer>
       <Stack.Navigator initialRouteName="Login">
@@ -105,11 +96,6 @@ export default function App() {
           name="AnnouncementDetails" 
           component={AnnouncementDetailsScreen}
           options={{ headerTitle: 'Announcement Details' }}
-        />
-        <Stack.Screen 
-          name="FormReview" 
-          component={FormReviewScreen}
-          options={{ headerTitle: 'Review Form' }}
         />
       </Stack.Navigator>
     </NavigationContainer>
