@@ -73,10 +73,8 @@ const Colors = {
   inactive: '#888888',  
 }
 
-const Tab = createBottomTabNavigator();
-const Stack = createStackNavigator();
+
 const HomeStack = createStackNavigator();
-const SettingsStack = createStackNavigator();
 function TutorTabNavigator() {
   return (
     <Tab.Navigator
