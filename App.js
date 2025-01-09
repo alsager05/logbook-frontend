@@ -13,6 +13,7 @@ import SettingsScreen from './screens/SettingsScreen';
 import ResidentListScreen from './screens/ResidentListScreen';
 import ResidentDetailsScreen from './screens/ResidentDetailsScreen';
 import AnnouncementDetailsScreen from './screens/AnnouncementDetailsScreen';
+import FormReviewScreen from './screens/FormReviewScreen';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -104,6 +105,11 @@ export default function App() {
           name="AnnouncementDetails" 
           component={AnnouncementDetailsScreen}
           options={{ headerTitle: 'Announcement Details' }}
+        />
+        <Stack.Screen 
+          name="FormReview" 
+          component={FormReviewScreen}
+          options={{ headerTitle: 'Review Form' }}
         />
       </Stack.Navigator>
     </NavigationContainer>
