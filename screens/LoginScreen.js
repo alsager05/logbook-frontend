@@ -18,10 +18,11 @@ const Colors = {
   inactive: '#888888',  
 };
 
-export default function LoginScreen({ onLogin }) {
+export default function LoginScreen({ navigation }) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState('');
+  const [error, setError] = useState('');
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -33,11 +34,21 @@ export default function LoginScreen({ onLogin }) {
   }, []);
 
   const handleLogin = () => {
+    // Clear previous error
+    setError('');
+
+    // Basic validation
     if (username.trim() === '' || password.trim() === '' || !role) {
       Alert.alert('Error', 'Please enter username, password, and select a role');
       return;
     }
-    onLogin(role);
+
+    // Successful login - navigate based on role
+    if (role === 'tutor') {
+      navigation.replace('TutorTabs');
+    } else {
+      navigation.replace('ResidentTabs');
+    }
   };
 
   return (
@@ -59,6 +70,7 @@ export default function LoginScreen({ onLogin }) {
         resizeMode="contain"
       />
       <Text style={styles.title}>Login</Text>
+      
       <TextInput
         style={styles.input}
         placeholder="Username"
@@ -66,6 +78,7 @@ export default function LoginScreen({ onLogin }) {
         onChangeText={setUsername}
         autoCapitalize="none"
       />
+
       <TextInput
         style={styles.input}
         placeholder="Password"
@@ -73,6 +86,7 @@ export default function LoginScreen({ onLogin }) {
         onChangeText={setPassword}
         secureTextEntry
       />
+
       <View style={styles.roleContainer}>
         <TouchableOpacity 
           style={[styles.roleButton, role === 'tutor' && styles.roleButtonActive]}
@@ -91,7 +105,15 @@ export default function LoginScreen({ onLogin }) {
           </Text>
         </TouchableOpacity>
       </View>
-      <TouchableOpacity style={styles.button} onPress={handleLogin}>
+
+      <TouchableOpacity 
+        style={[
+          styles.button,
+          (!username || !password || !role) && styles.buttonDisabled
+        ]} 
+        onPress={handleLogin}
+        disabled={!username || !password || !role}
+      >
         <Text style={styles.buttonText}>Login</Text>
       </TouchableOpacity>
     </View>
@@ -164,5 +186,8 @@ const styles = StyleSheet.create({
     width: 200,
     height: 200,
     marginBottom: 40,
+  },
+  buttonDisabled: {
+    backgroundColor: Colors.inactive,
   },
 });

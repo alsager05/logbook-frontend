@@ -24,7 +24,7 @@ export default function AnnouncementDetailsScreen({ route }) {
           Posted on: {new Date(announcement.date).toLocaleDateString()}
         </Text>
         <Text style={styles.details}>
-          {announcement.fullDetails || announcement.details}
+          {announcement.fullDetails}
         </Text>
       </View>
     </ScrollView>
