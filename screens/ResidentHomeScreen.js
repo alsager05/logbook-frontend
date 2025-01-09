@@ -1,7 +1,11 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { createStackNavigator } from '@react-navigation/stack';
+import FormScreen from './FormScreen';
 
-export default function ResidentHomeScreen({ navigation }) {
+const HomeStack = createStackNavigator();
+
+function MainResidentScreen({ navigation }) {
   return (
     <View style={styles.container}>
       <View style={styles.iconsContainer}>
@@ -27,6 +31,46 @@ export default function ResidentHomeScreen({ navigation }) {
         </TouchableOpacity>
       </View>
     </View>
+  );
+}
+
+export default function ResidentHomeScreen() {
+  return (
+    <HomeStack.Navigator
+      screenOptions={{
+        headerShown: true
+      }}
+    >
+      <HomeStack.Screen 
+        name="ResidentHome" 
+        component={MainResidentScreen}
+        options={{ 
+          headerTitle: 'Home',
+          headerShown: true
+        }}
+      />
+      <HomeStack.Screen 
+        name="OBS" 
+        component={FormScreen}
+        options={{
+          headerShown: true
+        }}
+      />
+      <HomeStack.Screen 
+        name="GYN" 
+        component={FormScreen}
+        options={{
+          headerShown: true
+        }}
+      />
+      <HomeStack.Screen 
+        name="EPA" 
+        component={FormScreen}
+        options={{
+          headerShown: true
+        }}
+      />
+    </HomeStack.Navigator>
   );
 }
 

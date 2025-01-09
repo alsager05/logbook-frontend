@@ -10,59 +10,12 @@ import { createStackNavigator } from '@react-navigation/stack';
 import SettingsScreen from './screens/SettingsScreen';
 import AnnouncementScreen from './screens/AnnouncementScreen';
 import TutorHomeScreen from './screens/TutorHomeScreen';
-import ResidentHomeScreen from './screens/ResidentHomeScreen.js';
-import ResidentProfileScreen from './screens/ResidentProfileScreen.js';
-import TutorProfileScreen from './screens/TutorProfileScreen.js';
-import OBSScreen from './screens/OBSScreen';
-import GYNScreen from './screens/GYNScreen';
-import EPAScreen from './screens/EPAScreen';
+import ResidentHomeScreen from './screens/ResidentHomeScreen';
+import ResidentProfileScreen from './screens/ResidentProfileScreen';
+import TutorProfileScreen from './screens/TutorProfileScreen';
+import FormScreenScreen from './screens/FormScreen';
 import LoginScreen from './screens/LoginScreen';
-
-
-
 import AnnouncementDetailsScreen from './screens/AnnouncementDetailsScreen';
-
-const Tab = createBottomTabNavigator();
-const Stack = createStackNavigator();
-
-// Create a Stack navigator for Settings
-const SettingsStack = createStackNavigator();
-
-function SettingsStackScreen({ role }) {
-  return (
-    <SettingsStack.Navigator>
-      <SettingsStack.Screen 
-        name="SettingsMain" 
-        component={SettingsScreen}
-        options={{ headerTitle: 'Settings' }}
-      />
-    </SettingsStack.Navigator>
-  );
-}
-
-function HomeStackScreen() {
-  return (
-    <Stack.Navigator>
-      <Stack.Screen 
-        name="ResidentHome" 
-        component={ResidentListScreen}
-        options={{ headerTitle: 'Residents' }}
-      />
-      <Stack.Screen 
-        name="ResidentDetails" 
-        component={ResidentDetailsScreen}
-        options={({ route }) => ({ 
-          headerTitle: route.params.resident.name 
-        })}
-      />
-      <Stack.Screen 
-        name="AnnouncementDetails" 
-        component={AnnouncementDetailsScreen}
-        options={{ headerTitle: 'Announcement Details' }}
-      />
-    </Stack.Navigator>
-  );
-}
 
 const Colors = {
   primary: '#000000',    
@@ -73,78 +26,9 @@ const Colors = {
   inactive: '#888888',  
 }
 
-
-const HomeStack = createStackNavigator();
-function TutorTabNavigator() {
-  return (
-    <Tab.Navigator
-      screenOptions={({ route }) => ({
-        tabBarIcon: ({ focused, color, size }) => {
-          let iconName;
-
-          if (route.name === 'Home') {
-            iconName = focused ? 'home' : 'home-outline';
-          } else if (route.name === 'Announcements') {
-            iconName = focused ? 'megaphone' : 'megaphone-outline';
-          } else if (route.name === 'Settings') {
-            iconName = focused ? 'settings' : 'settings-outline';
-          } else if (route.name === 'Residents') {
-            iconName = focused ? 'people' : 'people-outline';
-          }
-
-          return <Ionicons name={iconName} size={size} color={color} />;
-        },
-        tabBarActiveTintColor: Colors.primary,
-        tabBarInactiveTintColor: Colors.inactive,
-      })}
-    >
-      <Tab.Screen name="Home" component={TutorHomeScreen} />
-      <Tab.Screen name="Residents" component={HomeStackScreen} />
-      <Tab.Screen name="Announcements" component={AnnouncementScreen} />
-      <Tab.Screen 
-        name="Settings" 
-        component={SettingsStackScreen}
-        options={{
-          headerShown: false
-        }}
-      />
-    </Tab.Navigator>
-  );
-}
-
-function ResidentTabNavigator() {
-  return (
-    <Tab.Navigator
-      screenOptions={({ route }) => ({
-        tabBarIcon: ({ focused, color, size }) => {
-          let iconName;
-
-          if (route.name === 'Home') {
-            iconName = focused ? 'home' : 'home-outline';
-          } else if (route.name === 'Announcements') {
-            iconName = focused ? 'megaphone' : 'megaphone-outline';
-          } else if (route.name === 'Settings') {
-            iconName = focused ? 'settings' : 'settings-outline';
-          }
-
-          return <Ionicons name={iconName} size={size} color={color} />;
-        },
-        tabBarActiveTintColor: Colors.primary,
-        tabBarInactiveTintColor: Colors.inactive,
-      })}
-    >
-      <Tab.Screen name="Home" component={HomeStackScreen} />
-      <Tab.Screen name="Announcements" component={AnnouncementScreen} />
-      <Tab.Screen 
-        name="Settings" 
-        component={SettingsStackScreen}
-        options={{
-          headerShown: false
-        }}
-      />
-    </Tab.Navigator>
-  );
-}
+const Tab = createBottomTabNavigator();
+const Stack = createStackNavigator();
+const SettingsStack = createStackNavigator();
 
 function SettingsStackScreen({ role, onLogout }) {
   return (
@@ -163,6 +47,12 @@ function SettingsStackScreen({ role, onLogout }) {
   );
 }
 
+// First, create a wrapper component for Settings
+function SettingsWrapper(props) {
+  const { role, onLogout } = props;
+  return <SettingsStackScreen role={role} onLogout={onLogout} />;
+}
+
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [role, setRole] = useState('');
@@ -172,7 +62,6 @@ export default function App() {
       Alert.alert('Error', 'Please enter username, password, and select a role');
       return;
     }
-    // Here you would typically make an API call to validate credentials
     setRole(selectedRole);
     setIsLoggedIn(true);
   };
@@ -190,6 +79,7 @@ export default function App() {
     <NavigationContainer>
       <Tab.Navigator
         screenOptions={({ route }) => ({
+          headerShown: false,
           tabBarIcon: ({ focused, color, size }) => {
             let iconName;
 
@@ -217,13 +107,11 @@ export default function App() {
         />
         <Tab.Screen 
           name="Settings" 
-          component={(props) => <SettingsStackScreen {...props} role={role} onLogout={handleLogout} />}
-          options={{
-            headerShown: false
-          }}
-        />
+          options={{ headerShown: false }}
+        >
+          {(props) => <SettingsWrapper {...props} role={role} onLogout={handleLogout} />}
+        </Tab.Screen>
       </Tab.Navigator>
-
     </NavigationContainer>
   );
 }
