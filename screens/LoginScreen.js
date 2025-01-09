@@ -1,17 +1,17 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, SafeAreaView } from 'react-native';
 
-const LoginScreen = ({ onLogin }) => {
-const Colors = {
-  primary: '#000000',    
-  background: '#FFFFFF', 
-  text: '#000000',      
-  textLight: '#666666', 
-  border: '#CCCCCC',    
-  inactive: '#888888',  
-};
+
 
 export default function LoginScreen({ onLogin }) {
+  const Colors = {
+    primary: '#000000',    
+    background: '#FFFFFF', 
+    text: '#000000',      
+    textLight: '#666666', 
+    border: '#CCCCCC',    
+    inactive: '#888888',  
+  };
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState('');
@@ -154,4 +154,3 @@ const styles = StyleSheet.create({
   },
 });
 
-export default LoginScreen;
