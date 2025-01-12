@@ -1,20 +1,34 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-export default function ResidentDetailsScreen({ route }) {
+export default function ResidentDetailsScreen({ route, navigation }) {
   const { resident } = route.params;
 
-  // Example expanded resident data - replace with your actual data structure
-  const residentDetails = {
-    ...resident,
-    id: "R-2024-001",
-    level: "R3",
-    email: "john.smith@hospital.com",
-    phone: "+1 (555) 123-4567",
-    startDate: "July 1, 2021",
-    expectedCompletion: "June 30, 2024",
-  };
+  // Example form submissions data
+  const formSubmissions = [
+    {
+      id: 1,
+      type: 'OBS',
+      date: '2024-03-20',
+      status: 'pending',
+      details: 'Case: Normal Delivery',
+    },
+    {
+      id: 2,
+      type: 'GYN',
+      date: '2024-03-18',
+      status: 'pending',
+      details: 'Procedure: Laparoscopy',
+    },
+    {
+      id: 3,
+      type: 'EPA',
+      date: '2024-03-15',
+      status: 'pending',
+      details: 'Assessment: Patient Care',
+    },
+  ];
 
   const InfoRow = ({ icon, label, value }) => (
     <View style={styles.infoRow}>
@@ -32,16 +46,52 @@ export default function ResidentDetailsScreen({ route }) {
         <View style={styles.avatarContainer}>
           <Ionicons name="person-circle" size={120} color="#666" />
         </View>
-        <Text style={styles.name}>{residentDetails.name}</Text>
-        <Text style={styles.id}>{residentDetails.id}</Text>
+        <Text style={styles.name}>{resident.name}</Text>
+        <Text style={styles.id}>{resident.id}</Text>
       </View>
 
       <View style={styles.infoSection}>
-        <InfoRow icon="school" label="Level" value={residentDetails.level} />
-        <InfoRow icon="mail" label="Email" value={residentDetails.email} />
-        <InfoRow icon="call" label="Phone" value={residentDetails.phone} />
-        <InfoRow icon="calendar" label="Start Date" value={residentDetails.startDate} />
-        <InfoRow icon="flag" label="Expected Completion" value={residentDetails.expectedCompletion} />
+        <InfoRow icon="school" label="Level" value={resident.level} />
+        <InfoRow icon="mail" label="Email" value={resident.email} />
+        <InfoRow icon="call" label="Phone" value={resident.phone} />
+        <InfoRow icon="calendar" label="Start Date" value={resident.startDate} />
+        <InfoRow icon="flag" label="Expected Completion" value={resident.expectedCompletion} />
+      </View>
+
+      <View style={styles.submissionsSection}>
+        <Text style={styles.sectionTitle}>Form Submissions</Text>
+        {formSubmissions.map((submission) => (
+          <TouchableOpacity
+            key={submission.id}
+            style={styles.submissionCard}
+            onPress={() => navigation.navigate('FormReview', { submission, resident })}
+          >
+            <View style={styles.submissionHeader}>
+              <View style={styles.typeContainer}>
+                <Ionicons 
+                  name={
+                    submission.type === 'EPA' ? 'document-text' :
+                    submission.type === 'OBS' ? 'medical' : 'woman'
+                  } 
+                  size={20} 
+                  color="#666" 
+                />
+                <Text style={styles.submissionType}>{submission.type}</Text>
+              </View>
+              <Text style={styles.submissionDate}>{submission.date}</Text>
+            </View>
+            <Text style={styles.submissionDetails}>{submission.details}</Text>
+            <View style={styles.statusContainer}>
+              <Text style={styles.statusText}>Status: </Text>
+              <Text style={[
+                styles.statusValue,
+                { color: submission.status === 'pending' ? '#FFA500' : '#4CAF50' }
+              ]}>
+                {submission.status.charAt(0).toUpperCase() + submission.status.slice(1)}
+              </Text>
+            </View>
+          </TouchableOpacity>
+        ))}
       </View>
     </ScrollView>
   );
@@ -98,5 +148,64 @@ const styles = StyleSheet.create({
   value: {
     fontSize: 16,
     fontWeight: '500',
+  },
+  submissionsSection: {
+    padding: 20,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 15,
+    color: '#333',
+  },
+  submissionCard: {
+    backgroundColor: '#f5f5f5',
+    borderRadius: 10,
+    padding: 15,
+    marginBottom: 15,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+  },
+  submissionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  typeContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  submissionType: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginLeft: 8,
+  },
+  submissionDate: {
+    color: '#666',
+    fontSize: 14,
+  },
+  submissionDetails: {
+    fontSize: 16,
+    color: '#333',
+    marginBottom: 10,
+  },
+  statusContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  statusText: {
+    fontSize: 14,
+    color: '#666',
+  },
+  statusValue: {
+    fontSize: 14,
+    fontWeight: '600',
   },
 }); 
