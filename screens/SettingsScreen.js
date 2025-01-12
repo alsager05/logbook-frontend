@@ -1,150 +1,150 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Switch } from 'react-native';
+import React from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Linking, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
 
-const Colors = {
-  primary: '#000000',
-  background: '#FFFFFF',
-  text: '#000000',
-  textLight: '#666666',
-  border: '#CCCCCC',
-  inactive: '#888888',
-}
-
-const SettingsScreen = ({ navigation, onLogout }) => {
-  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
-
-  const handleLogout = () => {
-    // Call the onLogout function passed from App.js
-    onLogout();
-  };
-
-  const menuItems = [
-    { 
-      title: 'Profile', 
-      icon: 'person-outline',
-      type: 'link',
-      action: () => navigation.navigate('Profile') 
+export default function SettingsScreen() {
+  const socialLinks = [
+    {
+      id: 1,
+      name: 'Instagram',
+      icon: 'logo-instagram',
+      color: '#E1306C',
+      url: 'https://www.instagram.com/kbog_kw/',
     },
     {
-      title: 'Notifications',
-      icon: 'notifications-outline',
-      type: 'switch',
-      value: notificationsEnabled,
-      onValueChange: (newValue) => {
-        setNotificationsEnabled(newValue);
-      },
-      description: 'Receive updates and announcements'
+      id: 2,
+      name: 'WhatsApp',
+      icon: 'logo-whatsapp',
+      color: '#25D366',
+      url: 'https://wa.me/+96512345678', // Replace with actual WhatsApp number
     },
-    { 
-      title: 'Display Mode', 
-      icon: 'moon-outline',
-      type: 'link',
-      action: () => navigation.navigate('DisplayMode') 
+    {
+      id: 3,
+      name: 'Twitter',
+      icon: 'logo-twitter',
+      color: '#1DA1F2',
+      url: 'https://twitter.com/KBOG_KW',
     },
-    { 
-      title: 'About', 
-      icon: 'information-circle-outline',
-      type: 'link',
-      action: () => navigation.navigate('About') 
+    {
+      id: 4,
+      name: 'Website',
+      icon: 'globe-outline',
+      color: '#007AFF',
+      url: 'https://www.kbog.edu.kw', // Replace with actual website
     },
-    { 
-      title: 'Contact Us', 
+    {
+      id: 5,
+      name: 'Email',
       icon: 'mail-outline',
-      type: 'link',
-      action: () => navigation.navigate('ContactUs') 
-    },
-    { 
-      title: 'Logout', 
-      icon: 'log-out-outline',
-      type: 'link',
-      action: handleLogout,
-      textColor: '#FF3B30' // Red color for logout
+      color: '#FF2D55',
+      url: 'mailto:info@kbog.edu.kw', // Replace with actual email
     },
   ];
 
-  const renderMenuItem = (item, index) => {
-    if (item.type === 'switch') {
-      return (
-        <View key={index} style={styles.menuItem}>
-          <View style={styles.menuItemLeft}>
-            <Ionicons name={item.icon} size={24} color={Colors.primary} style={styles.icon} />
-            <View style={styles.menuItemText}>
-              <Text style={styles.menuText}>{item.title}</Text>
-              {item.description && (
-                <Text style={styles.descriptionText}>{item.description}</Text>
-              )}
-            </View>
-          </View>
-          <Switch
-            trackColor={{ false: Colors.border, true: Colors.inactive }}
-            thumbColor={item.value ? Colors.primary : Colors.background}
-            ios_backgroundColor={Colors.border}
-            onValueChange={item.onValueChange}
-            value={item.value}
-          />
-        </View>
-      );
-    }
-
-    return (
-      <TouchableOpacity
-        key={index}
-        style={styles.menuItem}
-        onPress={item.action}
-      >
-        <View style={styles.menuItemLeft}>
-          <Ionicons name={item.icon} size={24} color={Colors.primary} style={styles.icon} />
-          <Text style={styles.menuText}>{item.title}</Text>
-        </View>
-        <Ionicons name="chevron-forward" size={24} color="#CCCCCC" />
-      </TouchableOpacity>
-    );
+  const handleSocialLink = (url) => {
+    Linking.canOpenURL(url).then(supported => {
+      if (supported) {
+        Linking.openURL(url);
+      } else {
+        console.log("Don't know how to open URI: " + url);
+      }
+    });
   };
 
   return (
-    <View style={styles.container}>
-      {menuItems.map((item, index) => renderMenuItem(item, index))}
-    </View>
+    <ScrollView style={styles.container}>
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Contact & Social Media</Text>
+        <View style={styles.socialContainer}>
+          {socialLinks.map((link) => (
+            <TouchableOpacity
+              key={link.id}
+              style={styles.socialButton}
+              onPress={() => handleSocialLink(link.url)}
+            >
+              <View style={[styles.iconContainer, { backgroundColor: link.color }]}>
+                <Ionicons name={link.icon} size={24} color="#fff" />
+              </View>
+              <Text style={styles.socialText}>{link.name}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>About</Text>
+        <Text style={styles.aboutText}>
+          Kuwait Board of Obstetrics and Gynaecology (KBOG) is dedicated to 
+          advancing women's healthcare through excellence in education, research, 
+          and practice.
+        </Text>
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Version</Text>
+        <Text style={styles.versionText}>1.0.0</Text>
+      </View>
+    </ScrollView>
   );
-};
+}
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
-    padding: 15,
+    backgroundColor: '#fff',
   },
-  menuItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 15,
+  section: {
+    padding: 20,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
+    borderBottomColor: '#eee',
   },
-  menuItemLeft: {
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 15,
+    color: '#333',
+  },
+  socialContainer: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    gap: 15,
+  },
+  socialButton: {
+    width: '45%',
     alignItems: 'center',
-    flex: 1,
+    backgroundColor: '#f5f5f5',
+    borderRadius: 10,
+    padding: 15,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
   },
-  menuItemText: {
-    flex: 1,
+  iconContainer: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 8,
   },
-  icon: {
-    marginRight: 15,
-    color: Colors.primary,
-  },
-  menuText: {
-    fontSize: 16,
-    color: Colors.text,
-  },
-  descriptionText: {
+  socialText: {
     fontSize: 14,
-    color: Colors.textLight,
-    marginTop: 2,
+    color: '#333',
+    fontWeight: '500',
   },
-});
-
-export default SettingsScreen; 
+  aboutText: {
+    fontSize: 16,
+    color: '#666',
+    lineHeight: 24,
+  },
+  versionText: {
+    fontSize: 16,
+    color: '#666',
+  },
+}); 
