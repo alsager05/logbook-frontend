@@ -6,6 +6,13 @@ import FormScreen from './FormScreen';
 const HomeStack = createStackNavigator();
 
 function MainResidentScreen({ navigation }) {
+  const handleFormPress = (formType) => {
+    navigation.navigate('FormScreen', { 
+      name: 'SCORE',
+      formType: formType
+    });
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.iconsContainer}>

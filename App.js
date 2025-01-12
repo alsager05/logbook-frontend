@@ -13,9 +13,10 @@ import TutorHomeScreen from './screens/TutorHomeScreen';
 import ResidentHomeScreen from './screens/ResidentHomeScreen';
 import ResidentProfileScreen from './screens/ResidentProfileScreen';
 import TutorProfileScreen from './screens/TutorProfileScreen';
-import FormScreenScreen from './screens/FormScreen';
+import FormScreen from './screens/FormScreen';
 import LoginScreen from './screens/LoginScreen';
 import AnnouncementDetailsScreen from './screens/AnnouncementDetailsScreen';
+import { HomeStack } from './navigation/HomeStack';
 
 const Colors = {
   primary: '#000000',    
@@ -55,24 +56,13 @@ function SettingsWrapper(props) {
 
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [role, setRole] = useState('');
-
-  const handleLogin = (username, password, selectedRole) => {
-    if (username.trim() === '' || password.trim() === '' || !selectedRole) {
-      Alert.alert('Error', 'Please enter username, password, and select a role');
-      return;
-    }
-    setRole(selectedRole);
-    setIsLoggedIn(true);
-  };
-
-  const handleLogout = () => {
-    setIsLoggedIn(false);
-    setRole('');
-  };
+  const [role, setRole] = useState(null);
 
   if (!isLoggedIn) {
-    return <LoginScreen onLogin={handleLogin} />;
+    return <LoginScreen onLogin={(username, password, userRole) => {
+      setIsLoggedIn(true);
+      setRole(userRole);
+    }} />;
   }
 
   return (
@@ -99,7 +89,8 @@ export default function App() {
       >
         <Tab.Screen 
           name="Home" 
-          component={role === 'tutor' ? TutorHomeScreen : ResidentHomeScreen} 
+          component={(props) => <HomeStack {...props} role={role} />}
+          options={{ headerShown: false }}
         />
         <Tab.Screen 
           name="Announcements" 
