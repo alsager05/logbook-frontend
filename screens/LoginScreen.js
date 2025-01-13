@@ -1,23 +1,32 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, SafeAreaView } from 'react-native';
 
+const Colors = {
+  primary: '#000000',
+  background: '#FFFFFF',
+  text: '#000000',
+  textLight: '#666666',
+  border: '#CCCCCC',
+  inactive: '#888888',
+};
 
-
-export default function LoginScreen({ onLogin }) {
-  const Colors = {
-    primary: '#000000',    
-    background: '#FFFFFF', 
-    text: '#000000',      
-    textLight: '#666666', 
-    border: '#CCCCCC',    
-    inactive: '#888888',  
-  };
+export default function LoginScreen({ navigation }) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState('');
 
-  const handleLoginPress = () => {
-    onLogin(username, password, role);
+  const handleLogin = () => {
+    if (!username || !password || !role) {
+      alert('Please fill in all fields');
+      return;
+    }
+
+    // Navigate based on role
+    if (role === 'tutor') {
+      navigation.replace('TutorTabs');
+    } else {
+      navigation.replace('ResidentTabs');
+    }
   };
 
   return (
@@ -33,6 +42,7 @@ export default function LoginScreen({ onLogin }) {
 
         <View style={styles.formContainer}>
           <Text style={styles.title}>Login</Text>
+          
           <TextInput
             style={styles.input}
             placeholder="Username"
@@ -40,6 +50,7 @@ export default function LoginScreen({ onLogin }) {
             onChangeText={setUsername}
             autoCapitalize="none"
           />
+
           <TextInput
             style={styles.input}
             placeholder="Password"
@@ -47,6 +58,7 @@ export default function LoginScreen({ onLogin }) {
             onChangeText={setPassword}
             secureTextEntry
           />
+
           <View style={styles.roleContainer}>
             <TouchableOpacity 
               style={[styles.roleButton, role === 'tutor' && styles.roleButtonActive]}
@@ -65,14 +77,19 @@ export default function LoginScreen({ onLogin }) {
               </Text>
             </TouchableOpacity>
           </View>
-          <TouchableOpacity style={styles.button} onPress={handleLoginPress}>
+
+          <TouchableOpacity 
+            style={[styles.button, (!username || !password || !role) && styles.buttonDisabled]}
+            onPress={handleLogin}
+            disabled={!username || !password || !role}
+          >
             <Text style={styles.buttonText}>Login</Text>
           </TouchableOpacity>
         </View>
       </View>
     </SafeAreaView>
   );
-};
+}
 
 const styles = StyleSheet.create({
   safeArea: {
@@ -151,6 +168,9 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  buttonDisabled: {
+    backgroundColor: Colors.inactive,
   },
 });
 
