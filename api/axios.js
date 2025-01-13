@@ -3,8 +3,12 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Create axios instance with default config
 const api = axios.create({
-  baseURL: 'http://localhost:8000', // Replace with your actual API base URL
- 
+  // If you're using Expo Go, use your computer's IP address instead of localhost
+  baseURL: 'http://192.168.1.X:8000', // Replace with your computer's IP address
+  headers: {
+    'Accept': 'application/json',
+    'Content-Type': 'application/json'
+  }
 });
 
 // Add request interceptor for auth token
@@ -29,10 +33,7 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response.data,
   (error) => {
-    if (error.response?.status === 401) {
-      // Handle unauthorized - you might want to clear storage and redirect to login
-      AsyncStorage.removeItem('token');
-    }
+    console.error('API Error:', error.response?.data || error.message);
     return Promise.reject(error);
   }
 );
