@@ -8,35 +8,33 @@ import {
   Alert 
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { formsService } from '../api/forms';
 
 export default function TutorHomeScreen({ navigation }) {
-  // Example notifications data - replace with your actual data
-  const [pendingForms, setPendingForms] = useState([
-    {
-      id: 1,
-      residentName: 'Dr. John Smith',
-      type: 'OBS',
-      date: '2024-03-20',
-      status: 'pending',
-      details: 'Requesting evaluation for Normal Vaginal Delivery'
-    },
-    {
-      id: 2,
-      residentName: 'Dr. Sarah Johnson',
-      type: 'OBS',
-      date: '2024-03-19',
-      status: 'pending',
-      details: 'Requesting evaluation for Cesarean Section'
-    },
-    {
-      id: 3,
-      residentName: 'Dr. Michael Brown',
-      type: 'OBS',
-      date: '2024-03-18',
-      status: 'pending',
-      details: 'Requesting evaluation for Forceps Delivery'
-    },
-  ]);
+  const queryClient = useQueryClient();
+
+  // Fetch pending forms
+  const { data: pendingForms, isLoading } = useQuery({
+    queryKey: ['pendingForms'],
+    queryFn: formsService.getPendingForms
+  });
+
+  // Accept form mutation
+  const acceptMutation = useMutation({
+    mutationFn: formsService.acceptForm,
+    onSuccess: () => {
+      queryClient.invalidateQueries(['pendingForms']);
+    }
+  });
+
+  // Reject form mutation
+  const rejectMutation = useMutation({
+    mutationFn: formsService.rejectForm,
+    onSuccess: () => {
+      queryClient.invalidateQueries(['pendingForms']);
+    }
+  });
 
   const handleAccept = (formId) => {
     Alert.alert(
@@ -49,14 +47,16 @@ export default function TutorHomeScreen({ navigation }) {
         },
         {
           text: "Accept",
-          onPress: () => {
-            // Remove from pending list
-            setPendingForms(forms => forms.filter(f => f.id !== formId));
-            // Navigate to form screen
-            navigation.navigate('FormScreen', { 
-              name: 'SCORE',
-              formId: formId
-            });
+          onPress: async () => {
+            try {
+              await acceptMutation.mutateAsync(formId);
+              navigation.navigate('Score', { 
+                name: 'SCORE',
+                formId: formId
+              });
+            } catch (error) {
+              Alert.alert('Error', 'Failed to accept form');
+            }
           }
         }
       ]
