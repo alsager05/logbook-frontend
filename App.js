@@ -1,135 +1,173 @@
-import React from 'react';
+import 'react-native-gesture-handler';
+import { StatusBar } from 'expo-status-bar';
+import { StyleSheet, Text, View, TextInput, TouchableOpacity, Alert } from 'react-native';
+import { useState } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { createStackNavigator } from '@react-navigation/stack';
 import { Ionicons } from '@expo/vector-icons';
+import { createStackNavigator } from '@react-navigation/stack';
 
-// Import screens
-import LoginScreen from './screens/LoginScreen';
+import SettingsScreen from './screens/SettingsScreen';
+import AnnouncementScreen from './screens/AnnouncementScreen';
 import TutorHomeScreen from './screens/TutorHomeScreen';
 import ResidentHomeScreen from './screens/ResidentHomeScreen';
-import AnnouncementScreen from './screens/AnnouncementScreen';
-import SettingsScreen from './screens/SettingsScreen';
-import ResidentListScreen from './screens/ResidentListScreen';
-import ResidentDetailsScreen from './screens/ResidentDetailsScreen';
+import ResidentProfileScreen from './screens/ResidentProfileScreen';
+import TutorProfileScreen from './screens/TutorProfileScreen';
+import FormScreen from './screens/FormScreen';
+import LoginScreen from './screens/LoginScreen';
 import AnnouncementDetailsScreen from './screens/AnnouncementDetailsScreen';
-import FormReviewScreen from './screens/FormReviewScreen';
-import OBSScreen from './screens/OBSScreen';
-import GYNScreen from './screens/GYNScreen';
-import EPAScreen from './screens/EPAScreen';
+import { HomeStack } from './navigation/HomeStack';
 
-const Stack = createStackNavigator();
+const Colors = {
+  primary: '#000000',    
+  background: '#FFFFFF', 
+  text: '#000000',      
+  textLight: '#666666',
+  border: '#CCCCCC',   
+  inactive: '#888888',  
+}
+
 const Tab = createBottomTabNavigator();
+const Stack = createStackNavigator();
+const SettingsStack = createStackNavigator();
 
-// Create Tutor Tab Navigator
-function TutorTabNavigator() {
+function SettingsStackScreen({ role, onLogout }) {
   return (
-    <Tab.Navigator
-      screenOptions={({ route }) => ({
-        tabBarIcon: ({ focused, color, size }) => {
-          let iconName;
-
-          if (route.name === 'Home') {
-            iconName = focused ? 'home' : 'home-outline';
-          } else if (route.name === 'Residents') {
-            iconName = focused ? 'people' : 'people-outline';
-          } else if (route.name === 'Announcements') {
-            iconName = focused ? 'megaphone' : 'megaphone-outline';
-          } else if (route.name === 'Settings') {
-            iconName = focused ? 'settings' : 'settings-outline';
-          }
-
-          return <Ionicons name={iconName} size={size} color={color} />;
-        },
-      })}
-    >
-      <Tab.Screen name="Home" component={TutorHomeScreen} />
-      <Tab.Screen name="Residents" component={ResidentListScreen} />
-      <Tab.Screen name="Announcements" component={AnnouncementScreen} />
-      <Tab.Screen name="Settings" component={SettingsScreen} />
-    </Tab.Navigator>
+    <SettingsStack.Navigator>
+      <SettingsStack.Screen 
+        name="SettingsMain" 
+        component={(props) => <SettingsScreen {...props} onLogout={onLogout} />}
+        options={{ headerTitle: 'Settings' }}
+      />
+      <SettingsStack.Screen 
+        name="Profile" 
+        component={role === 'tutor' ? TutorProfileScreen : ResidentProfileScreen}
+        options={{ headerTitle: 'Profile' }}
+      />
+    </SettingsStack.Navigator>
   );
 }
 
-// Create Resident Tab Navigator
-function ResidentTabNavigator() {
-  return (
-    <Tab.Navigator
-      screenOptions={({ route }) => ({
-        tabBarIcon: ({ focused, color, size }) => {
-          let iconName;
-
-          if (route.name === 'Home') {
-            iconName = focused ? 'home' : 'home-outline';
-          } else if (route.name === 'Announcements') {
-            iconName = focused ? 'megaphone' : 'megaphone-outline';
-          } else if (route.name === 'Settings') {
-            iconName = focused ? 'settings' : 'settings-outline';
-          }
-
-          return <Ionicons name={iconName} size={size} color={color} />;
-        },
-      })}
-    >
-      <Tab.Screen name="Home" component={ResidentHomeScreen} />
-      <Tab.Screen name="Announcements" component={AnnouncementScreen} />
-      <Tab.Screen name="Settings" component={SettingsScreen} />
-    </Tab.Navigator>
-  );
+// First, create a wrapper component for Settings
+function SettingsWrapper(props) {
+  const { role, onLogout } = props;
+  return <SettingsStackScreen role={role} onLogout={onLogout} />;
 }
 
 export default function App() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [role, setRole] = useState(null);
+
+  if (!isLoggedIn) {
+    return <LoginScreen onLogin={(username, password, userRole) => {
+      setIsLoggedIn(true);
+      setRole(userRole);
+    }} />;
+  }
+
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="Login">
-        <Stack.Screen 
-          name="Login" 
-          component={LoginScreen}
+      <Tab.Navigator
+        screenOptions={({ route }) => ({
+          headerShown: false,
+          tabBarIcon: ({ focused, color, size }) => {
+            let iconName;
+
+            if (route.name === 'Home') {
+              iconName = focused ? 'home' : 'home-outline';
+            } else if (route.name === 'Announcements') {
+              iconName = focused ? 'megaphone' : 'megaphone-outline';
+            } else if (route.name === 'Settings') {
+              iconName = focused ? 'settings' : 'settings-outline';
+            }
+
+            return <Ionicons name={iconName} size={size} color={color} />;
+          },
+          tabBarActiveTintColor: Colors.primary,
+          tabBarInactiveTintColor: Colors.inactive,
+        })}
+      >
+        <Tab.Screen 
+          name="Home" 
+          component={(props) => <HomeStack {...props} role={role} />}
           options={{ headerShown: false }}
         />
-        <Stack.Screen 
-          name="TutorTabs"
-          component={TutorTabNavigator}
+        <Tab.Screen 
+          name="Announcements" 
+          component={AnnouncementScreen} 
+        />
+        <Tab.Screen 
+          name="Settings" 
           options={{ headerShown: false }}
-        />
-        <Stack.Screen 
-          name="ResidentTabs"
-          component={ResidentTabNavigator}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen 
-          name="ResidentDetails" 
-          component={ResidentDetailsScreen}
-          options={({ route }) => ({ 
-            headerTitle: route.params.resident.name 
-          })}
-        />
-        <Stack.Screen 
-          name="AnnouncementDetails" 
-          component={AnnouncementDetailsScreen}
-          options={{ headerTitle: 'Announcement Details' }}
-        />
-        <Stack.Screen 
-          name="FormReview" 
-          component={FormReviewScreen}
-          options={{ headerTitle: 'Review Form' }}
-        />
-        <Stack.Screen 
-          name="OBS" 
-          component={OBSScreen}
-          options={{ headerTitle: 'OBS Form' }}
-        />
-        <Stack.Screen 
-          name="GYN" 
-          component={GYNScreen}
-          options={{ headerTitle: 'GYN Form' }}
-        />
-        <Stack.Screen 
-          name="EPA" 
-          component={EPAScreen}
-          options={{ headerTitle: 'EPA Form' }}
-        />
-      </Stack.Navigator>
+        >
+          {(props) => <SettingsWrapper {...props} role={role} onLogout={handleLogout} />}
+        </Tab.Screen>
+      </Tab.Navigator>
     </NavigationContainer>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: Colors.background,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 20,
+    paddingTop: 60,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 20,
+    color: Colors.text,
+  },
+  input: {
+    width: '100%',
+    height: 40,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: 5,
+    paddingHorizontal: 10,
+    marginBottom: 15,
+    color: Colors.text,
+  },
+  button: {
+    backgroundColor: Colors.primary,
+    padding: 15,
+    borderRadius: 5,
+    width: '100%',
+    alignItems: 'center',
+  },
+  buttonText: {
+    color: Colors.background,
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  roleContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+    marginBottom: 15,
+  },
+  roleButton: {
+    flex: 1,
+    padding: 10,
+    borderWidth: 1,
+    borderColor: Colors.primary,
+    borderRadius: 5,
+    marginHorizontal: 5,
+    alignItems: 'center',
+  },
+  roleButtonActive: {
+    backgroundColor: Colors.primary,
+  },
+  roleButtonText: {
+    color: Colors.primary,
+    fontSize: 16,
+  },
+  roleButtonTextActive: {
+    color: Colors.background,
+  },
+});
+

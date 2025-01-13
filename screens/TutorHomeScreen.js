@@ -9,16 +9,16 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-export default function TutorHomeScreen() {
+export default function TutorHomeScreen({ navigation }) {
   // Example notifications data - replace with your actual data
-  const [notifications, setNotifications] = useState([
+  const [pendingForms, setPendingForms] = useState([
     {
       id: 1,
       residentName: 'Dr. John Smith',
-      type: 'EPA',
+      type: 'OBS',
       date: '2024-03-20',
       status: 'pending',
-      details: 'Requesting approval for EPA assessment completion'
+      details: 'Requesting evaluation for Normal Vaginal Delivery'
     },
     {
       id: 2,
@@ -26,42 +26,47 @@ export default function TutorHomeScreen() {
       type: 'OBS',
       date: '2024-03-19',
       status: 'pending',
-      details: 'New OBS case requires review'
+      details: 'Requesting evaluation for Cesarean Section'
     },
     {
       id: 3,
       residentName: 'Dr. Michael Brown',
-      type: 'GYN',
+      type: 'OBS',
       date: '2024-03-18',
       status: 'pending',
-      details: 'GYN procedure approval needed'
+      details: 'Requesting evaluation for Forceps Delivery'
     },
   ]);
 
-  const handleApprove = (notificationId) => {
+  const handleAccept = (formId) => {
     Alert.alert(
-      "Approve Request",
-      "Are you sure you want to approve this request?",
+      "Accept Request",
+      "Are you sure you want to evaluate this procedure?",
       [
         {
           text: "Cancel",
           style: "cancel"
         },
         {
-          text: "Approve",
+          text: "Accept",
           onPress: () => {
-            setNotifications(notifications.filter(n => n.id !== notificationId));
-            // Add your API call here to update the approval status
+            // Remove from pending list
+            setPendingForms(forms => forms.filter(f => f.id !== formId));
+            // Navigate to form screen
+            navigation.navigate('FormScreen', { 
+              name: 'SCORE',
+              formId: formId
+            });
           }
         }
       ]
     );
   };
 
-  const handleReject = (notificationId) => {
+  const handleReject = (formId) => {
     Alert.alert(
       "Reject Request",
-      "Are you sure you want to reject this request?",
+      "Are you sure you want to reject this evaluation request?",
       [
         {
           text: "Cancel",
@@ -70,7 +75,7 @@ export default function TutorHomeScreen() {
         {
           text: "Reject",
           onPress: () => {
-            setNotifications(notifications.filter(n => n.id !== notificationId));
+            setPendingForms(forms => forms.filter(f => f.id !== formId));
             // Add your API call here to update the rejection status
           },
           style: "destructive"
@@ -84,54 +89,46 @@ export default function TutorHomeScreen() {
       <View style={styles.header}>
         <Text style={styles.welcomeText}>Welcome, Tutor!</Text>
         <View style={styles.notificationCount}>
-          <Text style={styles.countText}>{notifications.length}</Text>
+          <Text style={styles.countText}>{pendingForms.length}</Text>
         </View>
       </View>
 
-      <Text style={styles.sectionTitle}>Pending Approvals</Text>
+      <Text style={styles.sectionTitle}>Pending Evaluations</Text>
 
-      <ScrollView style={styles.notificationList}>
-        {notifications.length > 0 ? (
-          notifications.map((notification) => (
-            <View key={notification.id} style={styles.notificationCard}>
-              <View style={styles.notificationHeader}>
-                <Text style={styles.residentName}>{notification.residentName}</Text>
-                <Text style={styles.dateText}>{notification.date}</Text>
+      <ScrollView style={styles.formList}>
+        {pendingForms.length > 0 ? (
+          pendingForms.map((form) => (
+            <View key={form.id} style={styles.formCard}>
+              <View style={styles.formHeader}>
+                <Text style={styles.residentName}>{form.residentName}</Text>
+                <Text style={styles.dateText}>{form.date}</Text>
               </View>
               
               <View style={styles.typeContainer}>
-                <Ionicons 
-                  name={
-                    notification.type === 'EPA' ? 'document-text' :
-                    notification.type === 'OBS' ? 'medical' : 'woman'
-                  } 
-                  size={20} 
-                  color="#666" 
-                />
-                <Text style={styles.typeText}>{notification.type}</Text>
+                <Ionicons name="medical" size={20} color="#666" />
+                <Text style={styles.typeText}>{form.type}</Text>
               </View>
               
-              <Text style={styles.detailsText}>{notification.details}</Text>
+              <Text style={styles.detailsText}>{form.details}</Text>
               
               <View style={styles.actionButtons}>
-                <TouchableOpacity 
-                  style={[styles.actionButton, styles.approveButton]}
-                  onPress={() => handleApprove(notification.id)}
-                >
-                  <Text style={styles.buttonText}>Approve</Text>
-                </TouchableOpacity>
-                
-                <TouchableOpacity 
+                <TouchableOpacity
                   style={[styles.actionButton, styles.rejectButton]}
-                  onPress={() => handleReject(notification.id)}
+                  onPress={() => handleReject(form.id)}
                 >
-                  <Text style={[styles.buttonText, styles.rejectText]}>Reject</Text>
+                  <Text style={styles.rejectText}>Reject</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.actionButton, styles.approveButton]}
+                  onPress={() => handleAccept(form.id)}
+                >
+                  <Text style={styles.buttonText}>Evaluate</Text>
                 </TouchableOpacity>
               </View>
             </View>
           ))
         ) : (
-          <Text style={styles.noNotifications}>No pending approvals</Text>
+          <Text style={styles.noForms}>No pending evaluations</Text>
         )}
       </ScrollView>
     </View>
@@ -171,10 +168,10 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginBottom: 15,
   },
-  notificationList: {
+  formList: {
     flex: 1,
   },
-  notificationCard: {
+  formCard: {
     backgroundColor: '#f5f5f5',
     borderRadius: 10,
     padding: 15,
@@ -188,7 +185,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
   },
-  notificationHeader: {
+  formHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -244,7 +241,7 @@ const styles = StyleSheet.create({
   rejectText: {
     color: '#FF3B30',
   },
-  noNotifications: {
+  noForms: {
     textAlign: 'center',
     fontSize: 16,
     color: '#666',
