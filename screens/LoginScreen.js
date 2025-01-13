@@ -10,7 +10,7 @@ const Colors = {
   inactive: '#888888',
 };
 
-export default function LoginScreen({ navigation }) {
+export default function LoginScreen({ onLogin }) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState('');
@@ -21,12 +21,8 @@ export default function LoginScreen({ navigation }) {
       return;
     }
 
-    // Navigate based on role
-    if (role === 'tutor') {
-      navigation.replace('TutorTabs');
-    } else {
-      navigation.replace('ResidentTabs');
-    }
+    // Call the onLogin prop instead of using navigation
+    onLogin(username, password, role);
   };
 
   return (
