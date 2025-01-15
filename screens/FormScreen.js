@@ -3,211 +3,63 @@ import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Platfo
 import { Picker } from '@react-native-picker/picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Ionicons } from '@expo/vector-icons';
+import { useQuery } from '@tanstack/react-query';
+import { formsService } from '../api/forms';
 
-const formTemplates = [{
-  "_id": "677ee74806967f14b093719c",
-  "name": "SCORE",
-  "fieldTemplates": [
-    {
-      "name": "Name",
-      "type": "text",
-      "formTemplate": "677ee74806967f14b093719c",
-      "position": "LEFT",
-      "response": "RESIDENT",
-      "section": "1"
-    },
-    {
-      "name": "Level of Training",
-      "type": "select",
-      "options": ["PGY-1", "PGY-2", "PGY-3", "PGY-4", "PGY-5"],
-      "formTemplate": "677ee74806967f14b093719c",
-      "position": "LEFT",
-      "response": "RESIDENT",
-      "section": "1"
-    },
-    {
-      "name": "Date",
-      "type": "date",
-      "formTemplate": "677ee74806967f14b093719c",
-      "position": "LEFT",
-      "response": "RESIDENT",
-      "section": "1"
-    },
-    {
-      "name": "Obstetrical Procedure",
-      "type": "select",
-      "options": [
-        "Normal Vaginal Delivery",
-        "Episiotomy and repair",
-        "Cesarean Section",
-        "Vacuum Assisted Delivery",
-        "Forceps Delivery",
-        "Breech Delivery",
-        "Multiple Gestation Delivery",
-        "External Cephalic Version",
-        "Cervical Cerclage",
-        "Postpartum Hemorrhage Management",
-        "Repair of Obstetric Lacerations",
-        "3rd degree perineal laceration repair",
-        "4th degree perineal laceration repair",
-        "cervical tear repair",	
-        "B-Lynch suture placement",
-        "Cesarean hysterectomy ",
-        "Uterine artery ligation",
-        "Manual removal of retained placenta",
-        "Dilation and curettage",
-        "Dilation and evacuation in second trimester",
-        "Hematoma evacuation",
-        "Repair of uterine rupture",
-        "Shoulder dystocia maneuvers",
-        "Suction evacuation of molar pregnancy",
-        "Uterine tamponade",
-        "Wound care- incision and drainage of hematoma/abcess",
-        "Wound care - Debridemnt",
-        "Wound care - secondary repair",
-        "Repair of uterine rupture",
-        "Other"
-      ],
-      "formTemplate": "677ee74806967f14b093719c",
-      "position": "LEFT",
-      "response": "RESIDENT",
-      "section": "1"
-    },
-    {
-      "name": "1. Pre-procedure plan",
-      "details": "Gathers/assesses required information to reach diagnosis and determine correct procedure required",
-      "type": "scale",
-      "formTemplate": "677ee74806967f14b093719c",
-      "position": "LEFT",
-      "response": "TUTOR",
-      "section": "2",
-      "scaleOptions": ["1", "2", "3", "4", "5"]
-    },
-    {
-      "name": "2. Case preparation",
-      "details": "Patient correctly prepared and positioned, understands approach and required instruments, prepared to deal with probable complications",
-      "type": "scale",
-      "formTemplate": "677ee74806967f14b093719c",
-      "position": "LEFT",
-      "response": "TUTOR",
-      "section": "2",
-      "scaleOptions": ["1", "2", "3", "4", "5"]
-    },
-    {
-      "name": "3. Knowledge of specific procedural steps",
-      "details": "Understands steps of procedure, potential risks, and means to avoid/overcome them",
-      "type": "scale",
-      "formTemplate": "677ee74806967f14b093719c",
-      "position": "LEFT",
-      "response": "TUTOR",
-      "section": "2",
-      "scaleOptions": ["1", "2", "3", "4", "5"]
-    },
-    {
-      "name": "4. Technical performance",
-      "details": "Efficiently performs steps, avoiding pitfalls and respecting soft tissues",
-      "type": "scale",
-      "formTemplate": "677ee74806967f14b093719c",
-      "position": "LEFT",
-      "response": "TUTOR",
-      "section": "2",
-      "scaleOptions": ["1", "2", "3", "4", "5"]
-    },
-    {
-      "name": "5. Visuospatial skills",
-      "details": "3D spatial orientation and able to position instruments/hardware where intended",
-      "type": "scale",
-      "formTemplate": "677ee74806967f14b093719c",
-      "position": "LEFT",
-      "response": "TUTOR",
-      "section": "2",
-      "scaleOptions": ["1", "2", "3", "4", "5"]
-    },
-    {
-      "name": "6. Post-procedure plan",
-      "details": "Appropriate complete post procedure plan",
-      "type": "scale",
-      "formTemplate": "677ee74806967f14b093719c",
-      "position": "LEFT",
-      "response": "TUTOR",
-      "section": "2",
-      "scaleOptions": ["1", "2", "3", "4", "5"]
-    },
-    {
-      "name": "7. Efficiency and flow",
-      "details": "Obvious planned course of procedure with economy of movement and flow",
-      "type": "scale",
-      "formTemplate": "677ee74806967f14b093719c",
-      "position": "LEFT",
-      "response": "TUTOR",
-      "section": "2",
-      "scaleOptions": ["1", "2", "3", "4", "5"]
-    },
-    {
-      "name": "8. Communication",
-      "details": "Professional and effective communication/utilization of staff",
-      "type": "scale",
-      "formTemplate": "677ee74806967f14b093719c",
-      "position": "LEFT",
-      "response": "TUTOR",
-      "section": "2",
-      "scaleOptions": ["1", "2", "3", "4", "5"]
-    },
-    {
-      "name": "9. Resident is able to safely perform this procedure independently ",
-      "type": "select",
-      "options": ["Yes", "No"],
-      "formTemplate": "677ee74806967f14b093719c",
-      "position": "LEFT",
-      "response": "TUTOR",
-      "section": "2"
-    },
-    {
-      "name": "10. Give at least 1 specific aspect of procedure done well",
-      "type": "textarea",
-      "formTemplate": "677ee74806967f14b093719c",
-      "position": "LEFT",
-      "response": "TUTOR",
-      "section": "2"
-    },
-    {
-      "name": "11. Give at least 1 specific suggestion for improvement",
-      "type": "textarea",
-      "formTemplate": "677ee74806967f14b093719c",
-      "position": "LEFT",
-      "response": "TUTOR",
-      "section": "2"
-    }
-  ]
-}];
-
-const formatDate = (date) => {
-  return date.toISOString().split('T')[0];
+// Helper function to check numeric fields
+const isNumericField = (fieldName) => {
+  if (!fieldName || typeof fieldName !== 'string') return false;
+  return /^\d+\./.test(fieldName);
 };
 
-const scaleDescription = `The purpose of this scale is to evaluate the trainee's ability to perform this procedure safely and independently. With that in mind please use the scale below to evaluate each item, irrespective of the resident's level of training in regards to this case.
-
-Scale:
-1 - "I had to do" - Requires complete hands on guidance, did not do, or was not given the opportunity to do
-2 - "I had to talk them through" - Able to perform tasks but requires constant direction
-3 - "I had to prompt them from time to time" - Demonstrates some independence, but requires intermittent direction
-4 - "I needed to be in the room just in case" - Independence but unaware of risks and still requires supervision for safe practice
-5 - "I did not need to be there" - Complete independence, understands risks and performs safely, practice ready`;
 
 export default function FormScreen({ route, navigation, role }) {
-  const { name } = route.params || { name: 'SCORE' };
+  const { formId, formName } = route.params || {};
   const [formData, setFormData] = useState({});
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [dateField, setDateField] = useState(null);
-  const currentRole = role?.toUpperCase(); // Convert to uppercase to match our constants
+  const currentRole = role?.toUpperCase();
 
-  // Find the correct template
-  const template = formTemplates.find(t => t.name === name) || formTemplates[0];
+  // Fetch form template using useQuery
+  const { 
+    data: template, 
+    isLoading, 
+    error 
+  } = useQuery({
+    queryKey: ['formTemplate', formId],
+    queryFn: () => formsService.getFormById(formId),
+    enabled: !!formId,
+    onSuccess: (data) => {
+      console.log('Form template fetched:', data);
+    },
+    onError: (error) => {
+      console.error('Error fetching form template:', error);
+    }
+  });
 
-  // Filter fields based on role
-  const visibleFields = template.fieldTemplates.filter(field => 
-    field.response === currentRole || field.response === 'RESIDENT'
-  );
+  // Show loading state
+  if (isLoading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <Text>Loading form...</Text>
+      </View>
+    );
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <View style={styles.errorContainer}>
+        <Text>Error loading form: {error.message}</Text>
+        <TouchableOpacity 
+          style={styles.retryButton}
+          onPress={() => navigation.goBack()}
+        >
+          <Text style={styles.retryButtonText}>Go Back</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
 
   const handleInputChange = (fieldName, value) => {
     setFormData(prev => ({
@@ -219,27 +71,22 @@ export default function FormScreen({ route, navigation, role }) {
   const handleDateChange = (event, selectedDate) => {
     setShowDatePicker(false);
     if (selectedDate && dateField) {
-      handleInputChange(dateField, formatDate(selectedDate));
+      handleInputChange(dateField, selectedDate.toISOString().split('T')[0]);
     }
   };
 
   const renderField = (field) => {
-    // Only render if field is meant for current role
-    if (field.response !== currentRole && field.response !== 'RESIDENT') {
-      return null;
-    }
-
-    // Make fields read-only for residents if they're in section 2
     const isReadOnly = currentRole === 'RESIDENT' && field.section === "2";
 
-    switch (field.type) {
+    switch (field.type?.toLowerCase()) {
       case 'text':
         return (
           <TextInput
-            style={styles.input}
+            style={[styles.input, isReadOnly && styles.inputDisabled]}
             value={formData[field.name] || ''}
-            onChangeText={(value) => handleInputChange(field.name, value)}
+            onChangeText={(value) => !isReadOnly && handleInputChange(field.name, value)}
             placeholder={`Enter ${field.name}`}
+            editable={!isReadOnly}
           />
         );
 
@@ -247,11 +94,14 @@ export default function FormScreen({ route, navigation, role }) {
         return (
           <View>
             <TouchableOpacity 
-              style={styles.dateButton}
+              style={[styles.dateButton, isReadOnly && styles.inputDisabled]}
               onPress={() => {
-                setDateField(field.name);
-                setShowDatePicker(true);
+                if (!isReadOnly) {
+                  setDateField(field.name);
+                  setShowDatePicker(true);
+                }
               }}
+              disabled={isReadOnly}
             >
               <View style={styles.dateButtonContent}>
                 <Ionicons name="calendar-outline" size={24} color="#666" />
@@ -271,30 +121,18 @@ export default function FormScreen({ route, navigation, role }) {
           </View>
         );
 
-      case 'scale':
+      case 'textarea':
         return (
-          <View style={styles.scaleContainer}>
-            {field.scaleOptions.map(option => (
-              <TouchableOpacity
-                key={option}
-                style={[
-                  styles.scaleButton,
-                  formData[field.name] === option && styles.scaleButtonSelected,
-                  isReadOnly && styles.scaleButtonDisabled
-                ]}
-                onPress={() => !isReadOnly && handleInputChange(field.name, option)}
-                disabled={isReadOnly}
-              >
-                <Text style={[
-                  styles.scaleButtonText,
-                  formData[field.name] === option && styles.scaleButtonTextSelected,
-                  isReadOnly && styles.scaleButtonTextDisabled
-                ]}>
-                  {option}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
+          <TextInput
+            style={[styles.input, styles.textareaInput, isReadOnly && styles.inputDisabled]}
+            value={formData[field.name] || ''}
+            onChangeText={(value) => !isReadOnly && handleInputChange(field.name, value)}
+            placeholder={`Enter ${field.name}`}
+            multiline={true}
+            numberOfLines={4}
+            textAlignVertical="top"
+            editable={!isReadOnly}
+          />
         );
 
       case 'select':
@@ -325,51 +163,45 @@ export default function FormScreen({ route, navigation, role }) {
           );
         }
         return (
-          <View>
-            <View style={styles.pickerContainer}>
-              <Picker
-                selectedValue={formData[field.name]}
-                onValueChange={(value) => handleInputChange(field.name, value)}
-                style={styles.picker}
-              >
-                <Picker.Item label={`Select ${field.name}`} value="" />
-                {field.options?.map(option => (
-                  <Picker.Item key={option} label={option} value={option} />
-                ))}
-              </Picker>
-            </View>
-            {field.name === "Obstetrical Procedure" && 
-             formData[field.name] === "Other" && (
-              <TextInput
-                style={[styles.input, styles.otherInput]}
-                value={formData[`${field.name}_other`] || ''}
-                onChangeText={(value) => handleInputChange(`${field.name}_other`, value)}
-                placeholder="Please specify the procedure"
-                multiline={true}
-                numberOfLines={3}
-              />
-            )}
+          <View style={[styles.pickerContainer, isReadOnly && styles.inputDisabled]}>
+            <Picker
+              enabled={!isReadOnly}
+              selectedValue={formData[field.name]}
+              onValueChange={(value) => handleInputChange(field.name, value)}
+              style={styles.picker}
+            >
+              <Picker.Item label={`Select ${field.name}`} value="" />
+              {field.options?.map(option => (
+                <Picker.Item key={option} label={option} value={option} />
+              ))}
+            </Picker>
           </View>
         );
 
-      case 'textarea':
+      case 'scale':
         return (
-          <TextInput
-            style={[
-              styles.input, 
-              styles.textareaInput,
-              isReadOnly && styles.inputDisabled
-            ]}
-            value={formData[field.name] || ''}
-            onChangeText={(value) => !isReadOnly && handleInputChange(field.name, value)}
-            placeholder={field.name.includes('specific aspect') ? 'Enter comments about what was done well...' :
-                        field.name.includes('suggestion') ? 'Enter suggestions for improvement...' :
-                        `Enter ${field.name}`}
-            multiline={true}
-            numberOfLines={4}
-            textAlignVertical="top"
-            editable={!isReadOnly}
-          />
+          <View style={styles.scaleContainer}>
+            {field.scaleOptions?.map(option => (
+              <TouchableOpacity
+                key={option}
+                style={[
+                  styles.scaleButton,
+                  formData[field.name] === option && styles.scaleButtonSelected,
+                  isReadOnly && styles.scaleButtonDisabled
+                ]}
+                onPress={() => !isReadOnly && handleInputChange(field.name, option)}
+                disabled={isReadOnly}
+              >
+                <Text style={[
+                  styles.scaleButtonText,
+                  formData[field.name] === option && styles.scaleButtonTextSelected,
+                  isReadOnly && styles.scaleButtonTextDisabled
+                ]}>
+                  {option}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
         );
 
       default:
@@ -377,65 +209,67 @@ export default function FormScreen({ route, navigation, role }) {
     }
   };
 
-  const handleSubmit = () => {
-    console.log('Form Data:', formData);
-    // Add your submission logic here
+  const handleSubmit = async () => {
+    try {
+      // Validate required fields
+      const requiredFields = template.fieldTemplates.filter(field => field.required);
+      const missingFields = requiredFields.filter(field => !formData[field.name]);
+      
+      if (missingFields.length > 0) {
+        alert(`Please fill in all required fields: ${missingFields.map(f => f.name).join(', ')}`);
+        return;
+      }
+
+      // Submit form data
+      console.log('Submitting form data:', formData);
+      // Add your API call here
+      
+    } catch (error) {
+      console.error('Error submitting form:', error);
+      alert('Failed to submit form. Please try again.');
+    }
   };
 
   return (
     <ScrollView style={styles.container}>
-      <Text style={styles.title}>{template.name}</Text>
-      
-      {/* Render basic info fields (name, level, date, procedure) */}
-      {template.fieldTemplates
-        .filter(field => !field.name.startsWith('1.') && !field.name.startsWith('2.') && 
-                        !field.name.startsWith('3.') && !field.name.startsWith('4.') && 
-                        !field.name.startsWith('5.') && !field.name.startsWith('6.') && 
-                        !field.name.startsWith('7.') && !field.name.startsWith('8.') && 
-                        !field.name.startsWith('9.') && !field.name.startsWith('10.') && 
-                        !field.name.startsWith('11.'))
-        .map((field, index) => (
-          <View key={index} style={styles.fieldContainer}>
-            <Text style={styles.label}>{field.name}</Text>
-            {field.details && (
-              <Text style={styles.details}>{field.details}</Text>
+      {template && (
+        <>
+          <Text style={styles.title}>{template.name}</Text>
+
+            {/* Scale Description */}
+            {template?.scaleDescription && (
+              <View style={styles.scaleDescriptionContainer}>
+                <Text style={styles.scaleDescriptionTitle}>Evaluation Scale Guide</Text>
+                <ScrollView 
+                  style={styles.scaleDescriptionScroll}
+                  nestedScrollEnabled={true}
+                >
+                  <Text style={styles.scaleDescription}>{template.scaleDescription}</Text>
+                </ScrollView>
+              </View>
             )}
-            {renderField(field)}
-          </View>
-        ))}
+          
+          {template.fieldTemplates?.map((field, index) => {
+            console.log('Field:', field);
+            return (
+              <View key={index} style={styles.fieldContainer}>
+                <Text style={styles.label}>
+                  {field.name}
+                  {field.required && <Text style={styles.required}> *</Text>}
+                </Text>
+                {field.description && (
+                  <Text style={styles.details}>{field.description}</Text>
+                )}
+                {renderField(field)}
+              </View>
+            );
+          })}
 
-      {/* Scale Description Section */}
-      <View style={styles.scaleDescriptionContainer}>
-        <Text style={styles.scaleDescriptionTitle}>Evaluation Scale Guide</Text>
-        <ScrollView 
-          style={styles.scaleDescriptionScroll}
-          nestedScrollEnabled={true}
-        >
-          <Text style={styles.scaleDescription}>{scaleDescription}</Text>
-        </ScrollView>
-      </View>
-
-      {/* Render all numbered questions in sequence */}
-      {template.fieldTemplates
-        .filter(field => field.name.match(/^\d+\./))
-        .sort((a, b) => {
-          const aNum = parseInt(a.name.split('.')[0]);
-          const bNum = parseInt(b.name.split('.')[0]);
-          return aNum - bNum;
-        })
-        .map((field, index) => (
-          <View key={index} style={styles.fieldContainer}>
-            <Text style={styles.label}>{field.name}</Text>
-            {field.details && (
-              <Text style={styles.details}>{field.details}</Text>
-            )}
-            {renderField(field)}
-          </View>
-        ))}
-
-      <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
-        <Text style={styles.submitButtonText}>Submit</Text>
-      </TouchableOpacity>
+          <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
+            <Text style={styles.submitButtonText}>Submit</Text>
+          </TouchableOpacity>
+        </>
+      )}
     </ScrollView>
   );
 }
@@ -459,6 +293,9 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginBottom: 8,
     fontWeight: '500',
+  },
+  required: {
+    color: 'red',
   },
   input: {
     borderWidth: 1,
@@ -536,36 +373,6 @@ const styles = StyleSheet.create({
   picker: {
     height: 50,
   },
-  otherInput: {
-    marginTop: 10,
-    height: 80,
-    textAlignVertical: 'top',
-    paddingTop: 10,
-  },
-  scaleDescriptionContainer: {
-    backgroundColor: '#f5f5f5',
-    borderRadius: 5,
-    marginBottom: 20,
-    borderLeftWidth: 4,
-    borderLeftColor: '#000',
-  },
-  scaleDescriptionTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#000',
-    padding: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ddd',
-  },
-  scaleDescriptionScroll: {
-    maxHeight: 150, // Adjust this value to control the height of the scrollable area
-    padding: 15,
-  },
-  scaleDescription: {
-    fontSize: 14,
-    color: '#333',
-    lineHeight: 20,
-  },
   textareaInput: {
     height: 100,
     paddingTop: 10,
@@ -615,4 +422,55 @@ const styles = StyleSheet.create({
     backgroundColor: '#f5f5f5',
     color: '#999',
   },
-}); 
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  retryButton: {
+    marginTop: 20,
+    padding: 10,
+    backgroundColor: '#000',
+    borderRadius: 5,
+  },
+  retryButtonText: {
+    color: '#fff',
+    fontSize: 16,
+  },
+  scaleDescriptionContainer: {
+    backgroundColor: '#f5f5f5',
+    borderRadius: 5,
+    marginBottom: 20,
+    borderLeftWidth: 4,
+    borderLeftColor: '#000',
+  },
+  scaleDescriptionTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#000',
+    padding: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: '#ddd',
+  },
+  scaleDescriptionScroll: {
+    maxHeight: 150, // Adjust this value to control the height of the scrollable area
+    padding: 15,
+  },
+  scaleDescription: {
+    fontSize: 14,
+    color: '#333',
+    lineHeight: 20,
+  },
+  textareaInput: {
+    height: 100,
+    paddingTop: 10,
+  },
+});// use querry to get tutotr list 
+// API user will call the tutro list users/tutotlist
+// drop down feil to chose the tutrs list to send tutor id with the form submission

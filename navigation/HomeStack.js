@@ -8,19 +8,27 @@ const Stack = createStackNavigator();
 
 export function HomeStack({ role }) {
   return (
-    <Stack.Navigator>
+    <Stack.Navigator
+      initialRouteName="HomeMain"
+      screenOptions={{
+        headerShown: true
+      }}
+    >
       <Stack.Screen 
         name="HomeMain" 
         component={role === 'tutor' ? TutorHomeScreen : ResidentHomeScreen}
-        options={{ headerShown: false }}
+        options={{ 
+          headerTitle: 'Home',
+          headerShown: false 
+        }}
       />
       <Stack.Screen 
-        name="Score"
-        component={(props) => <FormScreen {...props} role={role} />}
-        options={{ 
-          headerTitle: 'Evaluation Form',
+        name="Form"
+        component={FormScreen}
+        options={({ route }) => ({
+          headerTitle: route.params?.formName || 'Form',
           headerShown: true 
-        }}
+        })}
       />
     </Stack.Navigator>
   );

@@ -6,12 +6,7 @@ export function useAuth() {
   const queryClient = useQueryClient();
 
   const loginMutation = useMutation({
-    mutationFn: async ({ username, password }) => {
-      console.log('Attempting login with:', { username });
-      const response = await authService.login(username, password);
-      console.log('Login response:', response);
-      return response;
-    },
+    mutationFn: (data)=>authService.login(data),
     onSuccess: async (data) => {
       console.log('Login successful:', data);
       if (data.token) {
@@ -25,10 +20,7 @@ export function useAuth() {
   });
 
   const logoutMutation = useMutation({
-    mutationFn: async () => {
-      await authService.logout();
-      await AsyncStorage.removeItem('token');
-    },
+    mutationFn: authService.logout,
     onSuccess: () => {
       // Clear all queries from the cache
       queryClient.clear();

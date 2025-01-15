@@ -1,17 +1,19 @@
 import 'react-native-gesture-handler';
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View, Alert } from 'react-native';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClient, QueryClientProvider, useMutation } from '@tanstack/react-query';
 
 import { HomeStack } from './navigation/HomeStack';
 import AnnouncementScreen from './screens/AnnouncementScreen';
 import SettingsScreen from './screens/SettingsScreen';
 import LoginScreen from './screens/LoginScreen';
 import { useAuth } from './hooks/useAuth';
+import { authService } from './api/auth';
+import ChangePasswordScreen from './screens/ChangePasswordScreen';
 
 const Tab = createBottomTabNavigator();
 const queryClient = new QueryClient();
@@ -19,8 +21,30 @@ const queryClient = new QueryClient();
 function AppContent() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [role, setRole] = useState('');
-  const [token, setToken] = useState(null);
+  const [requirePasswordChange, setRequirePasswordChange] = useState(false);
+  const [userId, setUserId] = useState(null);
   const { login, logout, isLoggingIn, loginError } = useAuth();
+
+  const {mutate:loginMutation} = useMutation({
+    mutationFn: (data)=>authService.login(data),
+    onSuccess: (data)=>{
+      console.log('login', data);
+      if (data.requirePasswordChange) {
+        setRequirePasswordChange(true);
+        setUserId(data.userId);
+      } else {
+        setRole(data.role);
+        setIsLoggedIn(true);
+      }
+    },
+    onError: (error)=>{
+      console.log('login error', error);
+      Alert.alert(
+        'Login Failed',
+        error.message || 'An error occurred during login'
+      );
+    }
+  });
 
   const handleLogin = async (username, password, selectedRole) => {
     if (username.trim() === '' || password.trim() === '' || !selectedRole) {
@@ -29,10 +53,8 @@ function AppContent() {
     }
 
     try {
-      const response = await login({ username, password });
-      setToken(response.token);
-      setRole(selectedRole);
-      setIsLoggedIn(true);
+      console.log('login', username, password, selectedRole);
+      loginMutation({username, password, selectedRole});
     } catch (error) {
       console.error('Login error details:', error);
       Alert.alert(
@@ -53,9 +75,30 @@ function AppContent() {
     } finally {
       setIsLoggedIn(false);
       setRole('');
-      setToken(null);
     }
   };
+
+  const checkToken = async () => {
+    const token = await authService.checkToken();
+    console.log(token)
+    setIsLoggedIn(token);
+  };
+
+  useEffect(()=>{
+    checkToken();
+  },[])
+
+  if (requirePasswordChange) {
+    return (
+      <ChangePasswordScreen 
+        userId={userId}
+        onPasswordChanged={() => {
+          setRequirePasswordChange(false);
+          setIsLoggedIn(true);
+        }}
+      />
+    );
+  }
 
   if (!isLoggedIn) {
     return <LoginScreen onLogin={handleLogin} />;
@@ -75,7 +118,6 @@ function AppContent() {
             } else if (route.name === 'Settings') {
               iconName = focused ? 'settings' : 'settings-outline';
             }
-
             return <Ionicons name={iconName} size={size} color={color} />;
           },
           tabBarActiveTintColor: Colors.primary,
