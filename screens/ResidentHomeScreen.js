@@ -1,7 +1,9 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import FormScreen from './FormScreen';
+import { useQuery } from '@tanstack/react-query';
+import { formsService } from '../api/forms';
 
 const HomeStack = createStackNavigator();
 
@@ -13,31 +15,66 @@ function MainResidentScreen({ navigation }) {
     });
   };
 
+  const {data:forms, isLoading, error} = useQuery({
+    queryKey: ['forms'],
+    queryFn: formsService.getAllForms,
+    onSuccess: (data)=>{
+      console.log('forms', data);
+    },
+    onError: (error)=>{
+      console.log('error', error);
+    }
+  });
+
+  console.log(forms)
+  console.log(isLoading)
+  if(isLoading){
+    return <Text>Loading...</Text>
+  } 
+
+  if(error){
+    return <Text>Error</Text>
+  }
+
+  const formsList = forms?.map((form) => (
+    <TouchableOpacity 
+      key={form._id}
+      style={styles.iconButton}
+      onPress={() => navigation.navigate('Form', {
+        formName: form.formName,
+        formId: form._id
+      })}
+    >
+      <Text style={styles.iconText}>{form.formName}</Text>
+    </TouchableOpacity>
+  ));
+
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container}>
       <View style={styles.iconsContainer}>
-        <TouchableOpacity 
-          style={styles.iconButton}
-          onPress={() => navigation.navigate('OBS')}
-        >
-          <Text style={styles.iconText}>OBS</Text>
-        </TouchableOpacity>
+          {/* <TouchableOpacity 
+            style={styles.iconButton}
+            onPress={() => navigation.navigate('OBS')}
+          >
+            <Text style={styles.iconText}>OBS</Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity 
-          style={styles.iconButton}
-          onPress={() => navigation.navigate('GYN')}
-        >
-          <Text style={styles.iconText}>GYN</Text>
-        </TouchableOpacity>
+          <TouchableOpacity 
+            style={styles.iconButton}
+            onPress={() => navigation.navigate('GYN')}
+          >
+            <Text style={styles.iconText}>GYN</Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity 
-          style={styles.iconButton}
-          onPress={() => navigation.navigate('EPA')}
-        >
-          <Text style={styles.iconText}>EPA</Text>
-        </TouchableOpacity>
+          <TouchableOpacity 
+            style={styles.iconButton}
+            onPress={() => navigation.navigate('EPA')}
+          >
+            <Text style={styles.iconText}>EPA</Text>
+          </TouchableOpacity> */}
+          {formsList}
       </View>
-    </View>
+    </ScrollView>
   );
 }
 
@@ -56,27 +93,16 @@ export default function ResidentHomeScreen() {
           headerShown: true
         }}
       />
+      
       <HomeStack.Screen 
-        name="OBS" 
+        name="Form" 
         component={FormScreen}
-        options={{
+        options={({ route }) => ({
+          headerTitle: route.params?.formName || 'Form',
           headerShown: true
-        }}
+        })}
       />
-      <HomeStack.Screen 
-        name="GYN" 
-        component={FormScreen}
-        options={{
-          headerShown: true
-        }}
-      />
-      <HomeStack.Screen 
-        name="EPA" 
-        component={FormScreen}
-        options={{
-          headerShown: true
-        }}
-      />
+    
     </HomeStack.Navigator>
   );
 }
@@ -85,7 +111,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
-    padding: 20,
+    // padding: 20,
+    paddingHorizontal: 20,
+    // paddingTop: 50,
+    // marginBottom: 50,
+    // paddingBottom: 500,
   },
   iconsContainer: {
     flexDirection: 'column',

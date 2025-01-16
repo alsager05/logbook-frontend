@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, SafeAreaView } from 'react-native';
+import { useAuth } from '../hooks/useAuth';
 
 const Colors = {
   primary: '#000000',
@@ -14,6 +15,7 @@ export default function LoginScreen({ onLogin }) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState('');
+  const { isLoggingIn } = useAuth();
 
   const handleLogin = () => {
     if (!username || !password || !role) {
@@ -21,7 +23,6 @@ export default function LoginScreen({ onLogin }) {
       return;
     }
 
-    // Call the onLogin prop instead of using navigation
     onLogin(username, password, role);
   };
 
@@ -75,11 +76,17 @@ export default function LoginScreen({ onLogin }) {
           </View>
 
           <TouchableOpacity 
-            style={[styles.button, (!username || !password || !role) && styles.buttonDisabled]}
+            style={[
+              styles.button, 
+              (!username || !password || !role) && styles.buttonDisabled,
+              isLoggingIn && styles.buttonLoading
+            ]}
             onPress={handleLogin}
-            disabled={!username || !password || !role}
+            disabled={!username || !password || !role || isLoggingIn}
           >
-            <Text style={styles.buttonText}>Login</Text>
+            <Text style={styles.buttonText}>
+              {isLoggingIn ? 'Logging in...' : 'Login'}
+            </Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -166,6 +173,9 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   buttonDisabled: {
+    backgroundColor: Colors.inactive,
+  },
+  buttonLoading: {
     backgroundColor: Colors.inactive,
   },
 });
