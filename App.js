@@ -17,14 +17,7 @@ import ChangePasswordScreen from './screens/ChangePasswordScreen';
 
 
 const Tab = createBottomTabNavigator();
-const Colors = {
-  primary: "#000000",
-  background: "#FFFFFF",
-  text: "#000000",
-  textLight: "#666666",
-  border: "#CCCCCC",
-  inactive: "#888888",
-};
+
 const queryClient = new QueryClient();
 
 
