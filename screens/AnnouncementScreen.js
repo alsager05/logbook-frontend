@@ -1,67 +1,96 @@
-import React, { useState } from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  ScrollView, 
-  Image, 
+import React, { useState } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  Image,
   Dimensions,
   TouchableOpacity,
-  Modal
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-
+  Modal,
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { useQuery } from "@tanstack/react-query";
+import { getAllAnnouncements } from "../api/announcement";
 
 export default function AnnouncementScreen({ navigation }) {
-  const [selectedYear, setSelectedYear] = useState('2024');
-  const [selectedMonth, setSelectedMonth] = useState('All');
+  const [selectedYear, setSelectedYear] = useState("2024");
+  const [selectedMonth, setSelectedMonth] = useState("All");
   const [showYearPicker, setShowYearPicker] = useState(false);
   const [showMonthPicker, setShowMonthPicker] = useState(false);
 
-  const years = ['2024', '2023', '2022'];
+  const years = ["2024", "2023", "2022"];
   const months = [
-    'All',
-    'January', 'February', 'March', 'April',
-    'May', 'June', 'July', 'August',
-    'September', 'October', 'November', 'December'
+    "All",
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
   ];
 
   // Example announcements data - replace with your actual data
   const announcements = [
     {
       id: 1,
-      title: 'Important Update',
-      details: 'New guidelines for resident evaluations have been published. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.',
-      date: '2024-03-20',
-      fullDetails: 'This is the full detailed content of the announcement that will be shown in the details screen. It can contain much more information than the preview.',
+      title: "Important Update",
+      details:
+        "New guidelines for resident evaluations have been published. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+      date: "2024-03-20",
+      fullDetails:
+        "This is the full detailed content of the announcement that will be shown in the details screen. It can contain much more information than the preview.",
     },
     {
       id: 2,
-      title: 'Upcoming Workshop',
-      details: 'Join us for a special workshop on advanced surgical techniques. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
-      date: '2024-03-25',
-      fullDetails: 'Complete workshop information including schedule, location, and prerequisites will be shown here.',
+      title: "Upcoming Workshop",
+      details:
+        "Join us for a special workshop on advanced surgical techniques. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+      date: "2024-03-25",
+      fullDetails:
+        "Complete workshop information including schedule, location, and prerequisites will be shown here.",
     },
   ];
 
-  const filteredAnnouncements = announcements.filter(announcement => {
+  const { data, isFetching, isSuccess } = useQuery({
+    queryKey: ["announcementDetails"],
+    queryFn: getAllAnnouncements,
+  });
+  console.log("data", data);
+  const filteredAnnouncements = data?.filter((announcement) => {
     const announcementDate = new Date(announcement.date);
     const announcementYear = announcementDate.getFullYear().toString();
     const announcementMonth = months[announcementDate.getMonth() + 1];
-    
+
     return (
       announcementYear === selectedYear &&
-      (selectedMonth === 'All' || months[announcementDate.getMonth() + 1] === selectedMonth)
+      (selectedMonth === "All" ||
+        months[announcementDate.getMonth() + 1] === selectedMonth)
     );
   });
 
-  const Dropdown = ({ title, selected, options, visible, setVisible, onSelect }) => (
+  const Dropdown = ({
+    title,
+    selected,
+    options,
+    visible,
+    setVisible,
+    onSelect,
+  }) => (
     <View style={styles.dropdownContainer}>
-      <TouchableOpacity 
-        style={styles.dropdownButton} 
+      <TouchableOpacity
+        style={styles.dropdownButton}
         onPress={() => setVisible(true)}
       >
-        <Text style={styles.dropdownButtonText}>{title}: {selected}</Text>
+        <Text style={styles.dropdownButtonText}>
+          {title}: {selected}
+        </Text>
         <Ionicons name="chevron-down" size={20} color="#666" />
       </TouchableOpacity>
 
@@ -71,7 +100,7 @@ export default function AnnouncementScreen({ navigation }) {
         animationType="fade"
         onRequestClose={() => setVisible(false)}
       >
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.modalOverlay}
           activeOpacity={1}
           onPress={() => setVisible(false)}
@@ -86,10 +115,12 @@ export default function AnnouncementScreen({ navigation }) {
                   setVisible(false);
                 }}
               >
-                <Text style={[
-                  styles.optionText,
-                  selected === option && styles.selectedOption
-                ]}>
+                <Text
+                  style={[
+                    styles.optionText,
+                    selected === option && styles.selectedOption,
+                  ]}
+                >
                   {option}
                 </Text>
               </TouchableOpacity>
@@ -102,7 +133,7 @@ export default function AnnouncementScreen({ navigation }) {
 
   const handleSearch = () => {
     // You can add additional search logic here if needed
-    console.log('Searching for:', selectedYear, selectedMonth);
+    console.log("Searching for:", selectedYear, selectedMonth);
   };
 
   return (
@@ -128,123 +159,126 @@ export default function AnnouncementScreen({ navigation }) {
               onSelect={setSelectedMonth}
             />
           </View>
-          <TouchableOpacity 
-            style={styles.searchButton}
-            onPress={handleSearch}
-          >
+          <TouchableOpacity style={styles.searchButton} onPress={handleSearch}>
             <Ionicons name="search" size={24} color="#fff" />
           </TouchableOpacity>
         </View>
       </View>
 
       <ScrollView style={styles.scrollView}>
-        {filteredAnnouncements.map((announcement) => (
+        {data?.map((announcement) => (
           <View key={announcement.id} style={styles.announcementCard}>
             <Text style={styles.title}>{announcement.title}</Text>
-            
-            <TouchableOpacity 
+
+            <TouchableOpacity
               style={styles.imageContainer}
-              onPress={() => navigation.navigate('AnnouncementDetails', { announcement })}
+              onPress={() =>
+                navigation.navigate("AnnouncementDetails", { announcement })
+              }
             >
               <Ionicons name="image-outline" size={50} color="#666" />
-              <Text style={styles.imagePlaceholderText}>Tap to view details</Text>
+              <Text style={styles.imagePlaceholderText}>
+                Tap to view details
+              </Text>
             </TouchableOpacity>
-            
+
             <Text style={styles.date}>
               Posted on: {new Date(announcement.date).toLocaleDateString()}
             </Text>
           </View>
         ))}
-        {filteredAnnouncements.length === 0 && (
-          <Text style={styles.noResults}>No announcements found for selected period</Text>
+        {filteredAnnouncements?.length === 0 && (
+          <Text style={styles.noResults}>
+            No announcements found for selected period
+          </Text>
         )}
       </ScrollView>
     </View>
   );
 }
 
-const windowWidth = Dimensions.get('window').width;
+const windowWidth = Dimensions.get("window").width;
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
   },
   filterSection: {
     padding: 15,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    borderBottomColor: "#eee",
   },
   filterTitle: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
+    fontWeight: "600",
+    color: "#333",
     marginBottom: 10,
   },
   filtersContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 10,
   },
   dropdownsContainer: {
     flex: 1,
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 10,
   },
   dropdownContainer: {
     flex: 1,
   },
   dropdownButton: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: '#f5f5f5',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    backgroundColor: "#f5f5f5",
     padding: 10,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: "#ddd",
   },
   dropdownButtonText: {
     fontSize: 16,
-    color: '#333',
+    color: "#333",
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "center",
+    alignItems: "center",
   },
   modalContent: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderRadius: 10,
     padding: 10,
-    width: '80%',
-    maxHeight: '80%',
+    width: "80%",
+    maxHeight: "80%",
   },
   optionButton: {
     padding: 15,
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    borderBottomColor: "#f0f0f0",
   },
   optionText: {
     fontSize: 16,
-    color: '#333',
+    color: "#333",
   },
   selectedOption: {
-    color: '#007AFF',
-    fontWeight: 'bold',
+    color: "#007AFF",
+    fontWeight: "bold",
   },
   scrollView: {
     flex: 1,
     padding: 15,
   },
   announcementCard: {
-    backgroundColor: '#f5f5f5',
+    backgroundColor: "#f5f5f5",
     borderRadius: 10,
     padding: 15,
     marginBottom: 20,
     elevation: 2,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: {
       width: 0,
       height: 2,
@@ -254,44 +288,44 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 20,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 10,
-    color: '#333',
+    color: "#333",
   },
   imageContainer: {
     width: windowWidth - 60,
     height: 200,
-    backgroundColor: '#e1e1e1',
+    backgroundColor: "#e1e1e1",
     borderRadius: 8,
     marginBottom: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   imagePlaceholderText: {
     marginTop: 10,
-    color: '#666',
+    color: "#666",
     fontSize: 16,
   },
   date: {
     fontSize: 14,
-    color: '#666',
-    fontStyle: 'italic',
+    color: "#666",
+    fontStyle: "italic",
   },
   noResults: {
-    textAlign: 'center',
+    textAlign: "center",
     fontSize: 16,
-    color: '#666',
+    color: "#666",
     marginTop: 20,
   },
   searchButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: "#007AFF",
     width: 44,
     height: 44,
     borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     elevation: 2,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: {
       width: 0,
       height: 2,
@@ -299,4 +333,4 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
   },
-}); 
+});

@@ -15,8 +15,18 @@ import { useAuth } from './hooks/useAuth';
 import { authService } from './api/auth';
 import ChangePasswordScreen from './screens/ChangePasswordScreen';
 
+
 const Tab = createBottomTabNavigator();
+const Colors = {
+  primary: "#000000",
+  background: "#FFFFFF",
+  text: "#000000",
+  textLight: "#666666",
+  border: "#CCCCCC",
+  inactive: "#888888",
+};
 const queryClient = new QueryClient();
+
 
 function AppContent() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -46,9 +56,13 @@ function AppContent() {
     }
   });
 
+
   const handleLogin = async (username, password, selectedRole) => {
-    if (username.trim() === '' || password.trim() === '' || !selectedRole) {
-      Alert.alert('Error', 'Please enter username, password, and select a role');
+    if (username.trim() === "" || password.trim() === "" || !selectedRole) {
+      Alert.alert(
+        "Error",
+        "Please enter username, password, and select a role"
+      );
       return;
     }
 
@@ -63,6 +77,7 @@ function AppContent() {
         error.response?.data?.error || 
         error.message || 
         'An error occurred during login. Please check your credentials.'
+
       );
     }
   };
@@ -71,7 +86,7 @@ function AppContent() {
     try {
       await logout();
     } catch (error) {
-      console.error('Logout error:', error);
+      console.error("Logout error:", error);
     } finally {
       setIsLoggedIn(false);
       setRole('');
@@ -89,6 +104,7 @@ function AppContent() {
   },[])
 
   if (requirePasswordChange) {
+
     return (
       <ChangePasswordScreen 
         userId={userId}
@@ -149,6 +165,7 @@ export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AppContent />
+
     </QueryClientProvider>
   );
 }
@@ -166,8 +183,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.background,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
 });
-

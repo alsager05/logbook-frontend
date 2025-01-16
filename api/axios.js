@@ -1,18 +1,19 @@
-import axios from 'axios';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from "axios";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // Create axios instance with default config
 const api = axios.create({
   // Update this to your actual API endpoint
   baseURL: 'http://192.168.2.203:8000', // Replace with your actual backend URL
  
+
 });
 
 // Add request interceptor for auth token
 api.interceptors.request.use(
   async (config) => {
     try {
-      const token = await AsyncStorage.getItem('token');
+      const token = await AsyncStorage.getItem("token");
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
       }
@@ -26,6 +27,7 @@ api.interceptors.request.use(
     } catch (error) {
       console.error('Error getting token:', error);
       return config;
+
     }
   },
   (error) => {
@@ -56,6 +58,7 @@ api.interceptors.response.use(
       // Handle unauthorized access
       AsyncStorage.removeItem('token');
       // You might want to trigger a logout action here
+
     }
     
     return Promise.reject({
@@ -66,4 +69,4 @@ api.interceptors.response.use(
   }
 );
 
-export default api; 
+export default api;
