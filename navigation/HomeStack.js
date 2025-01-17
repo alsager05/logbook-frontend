@@ -27,7 +27,7 @@ export function HomeStack({ role }) {
         component={FormScreen}
         options={({ route }) => ({
           headerTitle: route.params?.formName || 'Form',
-          headerShown: true 
+          headerShown: true ,
         })}
       />
     </Stack.Navigator>

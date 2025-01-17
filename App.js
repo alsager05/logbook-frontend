@@ -29,19 +29,21 @@ function AppContent() {
   const { login, logout, isLoggingIn, loginError } = useAuth();
 
   const {mutate:loginMutation} = useMutation({
-    mutationFn: (data)=>authService.login(data),
-    onSuccess: (data)=>{
-      console.log('login', data);
+    mutationFn: (data) => authService.login(data),
+    onSuccess: (data) => {
+      console.log('Login successful:', data);
       if (data.requirePasswordChange) {
         setRequirePasswordChange(true);
         setUserId(data.userId);
       } else {
-        setRole(data.role);
+        // Make sure we have a role
+        const userRole = data.role || data.selectedRole?.toUpperCase();
+        setRole(userRole);
         setIsLoggedIn(true);
       }
     },
-    onError: (error)=>{
-      console.log('login error', error);
+    onError: (error) => {
+      console.error('Login mutation error:', error);
       Alert.alert(
         'Login Failed',
         error.message || 'An error occurred during login'
@@ -51,32 +53,21 @@ function AppContent() {
 
 
   const handleLogin = async (username, password, selectedRole) => {
-    if (username.trim() === "" || password.trim() === "" || !selectedRole) {
-      Alert.alert(
-        "Error",
-        "Please enter username, password, and select a role"
-      );
+    if (!username?.trim() || !password?.trim() || !selectedRole) {
+      Alert.alert('Error', 'Please enter username, password, and select a role');
       return;
     }
 
-    try {
-      console.log('login', username, password, selectedRole);
-      loginMutation({username, password, selectedRole});
-    } catch (error) {
-      console.error('Login error details:', error);
-      Alert.alert(
-        'Login Failed', 
-        error.response?.data?.message || 
-        error.response?.data?.error || 
-        error.message || 
-        'An error occurred during login. Please check your credentials.'
-
-      );
-    }
+    loginMutation({
+      username: username.trim(),
+      password: password.trim(),
+      selectedRole
+    });
   };
 
   const handleLogout = async () => {
     try {
+      console.log("first")
       await logout();
     } catch (error) {
       console.error("Logout error:", error);
@@ -88,8 +79,12 @@ function AppContent() {
 
   const checkToken = async () => {
     const token = await authService.checkToken();
-    console.log(token)
-    setIsLoggedIn(token);
+    console.log("dd",token)
+    if(token){
+      const user = await authService.getUser();
+      setIsLoggedIn(token);
+      setRole(user.role);
+    }
   };
 
   useEffect(()=>{
@@ -109,6 +104,8 @@ function AppContent() {
     );
   }
 
+
+  console.log(isLoggedIn)
   if (!isLoggedIn) {
     return <LoginScreen onLogin={handleLogin} />;
   }
@@ -147,7 +144,7 @@ function AppContent() {
           name="Settings" 
           options={{ headerShown: false }}
         >
-          {(props) => <SettingsScreen {...props} onLogout={handleLogout} role={role} />}
+          {(props) => <SettingsScreen {...props} handleLogout={handleLogout} role={role} />}
         </Tab.Screen>
       </Tab.Navigator>
     </NavigationContainer>

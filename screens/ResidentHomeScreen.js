@@ -7,72 +7,90 @@ import { formsService } from '../api/forms';
 
 const HomeStack = createStackNavigator();
 
-function MainResidentScreen({ navigation }) {
-  const handleFormPress = (formType) => {
-    navigation.navigate('FormScreen', { 
-      name: 'SCORE',
-      formType: formType
-    });
-  };
-
-  const {data:forms, isLoading, error} = useQuery({
-    queryKey: ['forms'],
-    queryFn: formsService.getAllForms,
-    onSuccess: (data)=>{
-      console.log('forms', data);
-    },
-    onError: (error)=>{
-      console.log('error', error);
+function ResidentHomeContent({ navigation }) {
+  const { data: formTemplates, isLoading, error } = useQuery({
+    queryKey: ['formTemplates'],
+    queryFn: async () => {
+      const response = await formsService.getAllForms();
+      console.log('Form templates response:', response);
+      return Array.isArray(response) ? response : [];
     }
   });
 
-  console.log(forms)
-  console.log(isLoading)
-  if(isLoading){
-    return <Text>Loading...</Text>
-  } 
+  console.log('FormTemplates in component:', formTemplates);
 
-  if(error){
-    return <Text>Error</Text>
+  if (isLoading) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.messageText}>Loading...</Text>
+      </View>
+    );
   }
 
-  const formsList = forms?.map((form) => (
-    <TouchableOpacity 
-      key={form._id}
-      style={styles.iconButton}
-      onPress={() => navigation.navigate('Form', {
-        formName: form.formName,
-        formId: form._id
-      })}
-    >
-      <Text style={styles.iconText}>{form.formName}</Text>
-    </TouchableOpacity>
-  ));
+  if (error) {
+    console.error('Error in component:', error);
+    return (
+      <View style={styles.container}>
+        <Text style={styles.messageText}>Error: {error.message}</Text>
+      </View>
+    );
+  }
+
+  const templates = Array.isArray(formTemplates) ? formTemplates : [];
+
+  // Helper function to get subtitle based on form name
+  const getFormSubtitle = (formName) => {
+    switch(formName.toUpperCase()) {
+      case 'OBS':
+        return 'Obstetrics';
+      case 'GYN':
+        return 'Gynecology';
+      case 'EPA':
+        return 'Entrustable Professional Activities';
+      default:
+        return formName;
+    }
+  };
 
   return (
     <ScrollView style={styles.container}>
-      <View style={styles.iconsContainer}>
-          {/* <TouchableOpacity 
-            style={styles.iconButton}
-            onPress={() => navigation.navigate('OBS')}
-          >
-            <Text style={styles.iconText}>OBS</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity 
-            style={styles.iconButton}
-            onPress={() => navigation.navigate('GYN')}
-          >
-            <Text style={styles.iconText}>GYN</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity 
-            style={styles.iconButton}
-            onPress={() => navigation.navigate('EPA')}
-          >
-            <Text style={styles.iconText}>EPA</Text>
-          </TouchableOpacity> */}
-          {formsList}
+      <View style={styles.header}>
+        <Text style={styles.welcomeText}>Home</Text>
+        <Text style={styles.subtitleText}>Select a form to submit</Text>
+      </View>
+      
+      <View style={styles.buttonContainer}>
+        {templates.length > 0 ? (
+          templates.map((template) => (
+            <TouchableOpacity 
+              key={template._id}
+              style={styles.categoryButton}
+              onPress={() => {
+                console.log('Navigating to form with data:', {
+                  formName: template.formName,
+                  formId: template._id,
+                  formData: template
+                });
+                navigation.navigate('Form', {
+                  formName: template.formName,
+                  formId: template._id,
+                  formData: template
+                });
+              }}
+            >
+              <View style={styles.buttonContent}>
+                <View style={styles.textContainer}>
+                  <Text style={styles.categoryTitle}>{template.formName}</Text>
+                  <Text style={styles.categorySubtitle}>
+                    {getFormSubtitle(template.formName)}
+                  </Text>
+                </View>
+              </View>
+            </TouchableOpacity>
+          ))
+        ) : (
+          <Text style={styles.messageText}>No forms available</Text>
+        )}
       </View>
     </ScrollView>
   );
@@ -80,20 +98,15 @@ function MainResidentScreen({ navigation }) {
 
 export default function ResidentHomeScreen() {
   return (
-    <HomeStack.Navigator
-      screenOptions={{
-        headerShown: true
-      }}
-    >
+    <HomeStack.Navigator screenOptions={{ headerShown: true }}>
       <HomeStack.Screen 
         name="ResidentHome" 
-        component={MainResidentScreen}
+        component={ResidentHomeContent}
         options={{ 
           headerTitle: 'Home',
-          headerShown: true
+          headerShown: false 
         }}
       />
-      
       <HomeStack.Screen 
         name="Form" 
         component={FormScreen}
@@ -102,7 +115,6 @@ export default function ResidentHomeScreen() {
           headerShown: true
         })}
       />
-    
     </HomeStack.Navigator>
   );
 }
@@ -110,38 +122,62 @@ export default function ResidentHomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
-    // padding: 20,
-    paddingHorizontal: 20,
-    // paddingTop: 50,
-    // marginBottom: 50,
-    // paddingBottom: 500,
+    backgroundColor: '#f5f7fa',
   },
-  iconsContainer: {
-    flexDirection: 'column',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 50,
-    gap: 30,
-  },
-  iconButton: {
-    alignItems: 'center',
-    justifyContent: 'center',
+  header: {
     padding: 20,
-    width: '80%',
-    backgroundColor: '#f5f5f5',
-    borderRadius: 10,
-    elevation: 2,
+    backgroundColor: '#fff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+    marginBottom: 10,
+  },
+  welcomeText: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#1a1a1a',
+    marginBottom: 5,
+  },
+  subtitleText: {
+    fontSize: 16,
+    color: '#666',
+  },
+  buttonContainer: {
+    padding: 15,
+    gap: 15,
+  },
+  categoryButton: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    elevation: 3,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
       height: 2,
     },
-    shadowOpacity: 0.25,
+    shadowOpacity: 0.1,
     shadowRadius: 3.84,
   },
-  iconText: {
-    fontSize: 20,
-    fontWeight: 'bold',
+  buttonContent: {
+    padding: 20,
   },
+  textContainer: {
+    flex: 1,
+  },
+  categoryTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#1a1a1a',
+    marginBottom: 4,
+  },
+  categorySubtitle: {
+    fontSize: 16,
+    color: '#666',
+  },
+  messageText: {
+    fontSize: 16,
+    textAlign: 'center',
+    marginTop: 50,
+    color: '#666',
+    padding: 20,
+  }
 }); 

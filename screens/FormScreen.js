@@ -1,10 +1,13 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Platform } from 'react-native';
+import React, { useEffect, useState, useCallback } from 'react';
+import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Platform, Alert } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Ionicons } from '@expo/vector-icons';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import { formsService } from '../api/forms';
+import { authService } from '../api/auth';
+import { formSubmissionsService } from '../api/formSubmissions';
+
 
 // Helper function to check numeric fields
 const isNumericField = (fieldName) => {
@@ -13,70 +16,165 @@ const isNumericField = (fieldName) => {
 };
 
 
-export default function FormScreen({ route, navigation, role }) {
-  const { formId, formName } = route.params || {};
+export default function FormScreen({ route, navigation }) {
+  // Move all hooks to the top level
   const [formData, setFormData] = useState({});
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [dateField, setDateField] = useState(null);
-  const currentRole = role?.toUpperCase();
+  const [selectedTutor, setSelectedTutor] = useState(null);
+  const [user, setUser] = useState(null);
 
-  // Fetch form template using useQuery
-  const { 
-    data: template, 
-    isLoading, 
-    error 
-  } = useQuery({
-    queryKey: ['formTemplate', formId],
-    queryFn: () => formsService.getFormById(formId),
-    enabled: !!formId,
-    onSuccess: (data) => {
-      console.log('Form template fetched:', data);
-    },
-    onError: (error) => {
-      console.error('Error fetching form template:', error);
-    }
-  });
+  const { formId, formName } = route.params;
 
-  // Show loading state
-  if (isLoading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <Text>Loading form...</Text>
-      </View>
-    );
-  }
-
-  // Show error state
-  if (error) {
-    return (
-      <View style={styles.errorContainer}>
-        <Text>Error loading form: {error.message}</Text>
-        <TouchableOpacity 
-          style={styles.retryButton}
-          onPress={() => navigation.goBack()}
-        >
-          <Text style={styles.retryButtonText}>Go Back</Text>
-        </TouchableOpacity>
-      </View>
-    );
-  }
-
-  const handleInputChange = (fieldName, value) => {
+  // Use useCallback for handlers
+  const handleInputChange = useCallback((fieldName, value) => {
     setFormData(prev => ({
       ...prev,
       [fieldName]: value
     }));
-  };
+  }, []);
 
-  const handleDateChange = (event, selectedDate) => {
+  const handleDateChange = useCallback((event, selectedDate) => {
     setShowDatePicker(false);
     if (selectedDate && dateField) {
       handleInputChange(dateField, selectedDate.toISOString().split('T')[0]);
     }
+  }, [dateField, handleInputChange]);
+
+  // Queries
+  const { data: template, isLoading: isLoadingTemplate, error: templateError } = useQuery({
+    queryKey: ['formTemplate', formId],
+    queryFn: async () => {
+      const response = await formsService.getFormById(formId);
+      console.log('Template response:', response);
+      
+      // Verify we have populated field templates
+      if (!response.fieldTemplates || !Array.isArray(response.fieldTemplates)) {
+        console.error('Missing or invalid field templates');
+        return null;
+      }
+
+      // Log field templates for debugging
+      console.log('Number of fields:', response.fieldTemplates.length);
+      console.log('First field:', response.fieldTemplates[0]);
+
+      return response;
+    },
+    enabled: !!formId
+  });
+
+  const { data: tutors, isLoading: isLoadingTutors, error: tutorError } = useQuery({
+    queryKey: ['tutors'],
+    queryFn: () => authService.getTutorList(),
+    enabled: !!user && user?.role?.toUpperCase() === 'RESIDENT'
+  });
+
+  // Mutation
+  const submitFormMutation = useMutation({
+    mutationFn: formSubmissionsService.submitForm,
+    onSuccess: () => {
+      Alert.alert(
+        'Success',
+        'Form submitted successfully',
+        [{ text: 'OK', onPress: () => navigation.goBack() }]
+      );
+    },
+    onError: (error) => {
+      Alert.alert('Error', error.message || 'Failed to submit form');
+    }
+  });
+
+  // Effects
+  useEffect(() => {
+    const getUser = async () => {
+      const userData = await authService.getUser();
+      setUser(userData);
+    };
+    getUser();
+  }, []);
+
+  // Loading states
+  if (isLoadingTemplate || isLoadingTutors) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.messageText}>Loading...</Text>
+      </View>
+    );
+  }
+
+  // Error states
+  if (templateError || tutorError) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.messageText}>
+          Error: {templateError?.message || tutorError?.message}
+        </Text>
+      </View>
+    );
+  }
+
+  console.log('Current template:', template);
+  console.log('Field templates:', template?.fieldTemplates);
+  console.log('Form ID:', formId);
+
+  const handleSubmit = async () => {
+    try {
+      if (!template || !user) {
+        Alert.alert('Error', 'Missing required data');
+        return;
+      }
+
+      // Validate required fields
+      const requiredFields = template.fieldTemplates.filter(field => field.required);
+      const missingFields = requiredFields.filter(field => !formData[field.name]);
+      
+      if (missingFields.length > 0) {
+        Alert.alert(
+          'Error', 
+          `Please fill in all required fields: ${missingFields.map(f => f.name).join(', ')}`
+        );
+        return;
+      }
+
+      if (user?.role?.toUpperCase() === 'RESIDENT' && !selectedTutor) {
+        Alert.alert('Error', 'Please select a tutor');
+        return;
+      }
+
+      const submissionData = {
+        formTemplate: template._id,
+        tutor: selectedTutor,
+        resident: user._id,
+        fieldRecords: Object.entries(formData).map(([fieldName, value]) => {
+          const fieldTemplate = template.fieldTemplates.find(f => f.name === fieldName);
+          return {
+            fieldTemplate: fieldTemplate._id,
+            value: value
+          };
+        }),
+        status: 'pending'
+      };
+
+      await formSubmissionsService.submitForm(submissionData);
+      
+      Alert.alert(
+        'Success',
+        'Your evaluation has been submitted successfully and sent to the selected tutor for review.',
+        [{ text: 'OK', onPress: () => navigation.goBack() }]
+      );
+
+    } catch (error) {
+      console.error('Error submitting form:', error);
+      Alert.alert(
+        'Error',
+        'Failed to submit form. Please try again.',
+        [{ text: 'OK' }]
+      );
+    }
   };
 
   const renderField = (field) => {
-    const isReadOnly = currentRole === 'RESIDENT' && field.section === "2";
+    const isReadOnly = user?.role?.toUpperCase() === 'RESIDENT' && field.section === "2";
 
     switch (field.type?.toLowerCase()) {
       case 'text':
@@ -209,66 +307,66 @@ export default function FormScreen({ route, navigation, role }) {
     }
   };
 
-  const handleSubmit = async () => {
-    try {
-      // Validate required fields
-      const requiredFields = template.fieldTemplates.filter(field => field.required);
-      const missingFields = requiredFields.filter(field => !formData[field.name]);
-      
-      if (missingFields.length > 0) {
-        alert(`Please fill in all required fields: ${missingFields.map(f => f.name).join(', ')}`);
-        return;
-      }
-
-      // Submit form data
-      console.log('Submitting form data:', formData);
-      // Add your API call here
-      
-    } catch (error) {
-      console.error('Error submitting form:', error);
-      alert('Failed to submit form. Please try again.');
-    }
-  };
-
   return (
     <ScrollView style={styles.container}>
-      {template && (
+      {template ? (
         <>
-          <Text style={styles.title}>{template.name}</Text>
+          <Text style={styles.title}>{template.formName || 'Form'}</Text>
 
-            {/* Scale Description */}
-            {template?.scaleDescription && (
-              <View style={styles.scaleDescriptionContainer}>
-                <Text style={styles.scaleDescriptionTitle}>Evaluation Scale Guide</Text>
-                <ScrollView 
-                  style={styles.scaleDescriptionScroll}
-                  nestedScrollEnabled={true}
+          {/* Tutor Selection for Residents */}
+          {user?.role?.toUpperCase() === 'RESIDENT' && (
+            <View style={styles.fieldContainer}>
+              <Text style={styles.label}>
+                Select Tutor <Text style={styles.required}>*</Text>
+              </Text>
+              <View style={styles.pickerContainer}>
+                <Picker
+                  selectedValue={selectedTutor}
+                  onValueChange={(value) => setSelectedTutor(value)}
+                  style={styles.picker}
                 >
-                  <Text style={styles.scaleDescription}>{template.scaleDescription}</Text>
-                </ScrollView>
+                  <Picker.Item label="Select a tutor..." value="" />
+                  {tutors?.map((tutor) => (
+                    <Picker.Item 
+                      key={tutor._id}
+                      label={tutor.name || tutor.username}
+                      value={tutor._id}
+                    />
+                  ))}
+                </Picker>
               </View>
-            )}
-          
-          {template.fieldTemplates?.map((field, index) => {
-            console.log('Field:', field);
-            return (
+            </View>
+          )}
+
+          {/* Form Fields */}
+          {template.fieldTemplates && template.fieldTemplates.length > 0 ? (
+            template.fieldTemplates.map((field, index) => (
               <View key={index} style={styles.fieldContainer}>
                 <Text style={styles.label}>
                   {field.name}
                   {field.required && <Text style={styles.required}> *</Text>}
                 </Text>
                 {field.description && (
-                  <Text style={styles.details}>{field.description}</Text>
+                  <Text style={styles.description}>{field.description}</Text>
                 )}
                 {renderField(field)}
               </View>
-            );
-          })}
+            ))
+          ) : (
+            <Text style={styles.messageText}>
+              No fields available for this form. Please contact administrator.
+            </Text>
+          )}
 
-          <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
-            <Text style={styles.submitButtonText}>Submit</Text>
+          <TouchableOpacity 
+            style={styles.submitButton} 
+            onPress={handleSubmit}
+          >
+            <Text style={styles.submitButtonText}>Submit Form</Text>
           </TouchableOpacity>
         </>
+      ) : (
+        <Text style={styles.messageText}>Loading form template...</Text>
       )}
     </ScrollView>
   );
@@ -296,6 +394,7 @@ const styles = StyleSheet.create({
   },
   required: {
     color: 'red',
+    fontSize: 16,
   },
   input: {
     borderWidth: 1,
@@ -367,8 +466,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#ddd',
     borderRadius: 5,
-    backgroundColor: '#fff',
     marginTop: 5,
+    backgroundColor: '#fff',
   },
   picker: {
     height: 50,

@@ -1,53 +1,52 @@
 import api from './axios';
 
 export const formsService = {
-
   getAllForms: async () => {
     try {
       const response = await api.get('/formTemplates');
-      console.log('getAllForms response:', response);
-      return response;
+      console.log('Forms response:', response);
+      const formTemplates = response.data || response;
+      return Array.isArray(formTemplates) ? formTemplates : [];
     } catch (error) {
-      console.error('getAllForms error:', error);
+      console.error('Error fetching forms:', error);
       throw error;
     }
   },
 
-  getPendingForms: async () => {
+  getFormById: async (id) => {
     try {
-      const response = await api.get('/forms/pending');
-      return response;
+      // First get the form template
+      const response = await api.get(`/formTemplates/${id}`);
+      console.log('Form template response:', response);
+      
+      const template = response.data || response;
+      
+      // Then fetch each field template
+      if (template.fieldTemplates && Array.isArray(template.fieldTemplates)) {
+        const fieldPromises = template.fieldTemplates.map(fieldId => 
+          api.get(`/fieldTemplates/${fieldId}`)
+        );
+        
+        const fieldResponses = await Promise.all(fieldPromises);
+        const populatedFields = fieldResponses.map(response => response.data || response);
+        
+        // Replace the array of IDs with the actual field data
+        template.fieldTemplates = populatedFields;
+      }
+
+      return template;
     } catch (error) {
+      console.error('Error fetching form by id:', error);
       throw error;
     }
   },
 
-  acceptForm: async (formId) => {
+  getFieldTemplate: async (id) => {
     try {
-      const response = await api.post(`/forms/${formId}/accept`);
-      return response;
+      const response = await api.get(`/fieldTemplates/${id}`);
+      return response.data || response;
     } catch (error) {
-      throw error;
-    }
-  },
-
-  rejectForm: async (formId) => {
-    try {
-      const response = await api.post(`/forms/${formId}/reject`);
-      return response;
-    } catch (error) {
-      throw error;
-    }
-  },
-
-  getFormById: async (formId) => {
-    try {
-      console.log('Getting form with ID:', formId);
-      const response = await api.get(`/formTemplates/${formId}`);
-      // console.log('getFormById response:', response);
-      return response;
-    } catch (error) {
-      console.error('getFormById error:', error);
+      console.error('Error fetching field template:', error);
       throw error;
     }
   }

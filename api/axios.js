@@ -4,9 +4,11 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 // Create axios instance with default config
 const api = axios.create({
   // Update this to your actual API endpoint
-  baseURL: 'http://192.168.2.203:8000', // Replace with your actual backend URL
- 
-
+  baseURL: 'http://192.168.8.112:8000', // Changed from 8081 to 8000 to match your backend
+  headers: {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json'
+  }
 });
 
 // Add request interceptor for auth token
@@ -17,21 +19,20 @@ api.interceptors.request.use(
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
       }
-      console.log('Request Config:', {
-        url: config.url,
-        method: config.method,
-        headers: config.headers,
-        data: config.data
-      });
+      // console.log('Request Config:', {
+      //   url: `${config.baseURL}${config.url}`,
+      //   method: config.method,
+      //   data: config.data,
+      //   headers: config.headers
+      // });
       return config;
     } catch (error) {
-      console.error('Error getting token:', error);
-      return config;
-
+      console.error('Request interceptor error:', error);
+      return Promise.reject(error);
     }
   },
   (error) => {
-    console.error('Request interceptor error:', error);
+    console.error('Request error:', error);
     return Promise.reject(error);
   }
 );
@@ -39,12 +40,13 @@ api.interceptors.request.use(
 // Add response interceptor for error handling
 api.interceptors.response.use(
   (response) => {
-    // console.log('API Response:', {
-    //   url: response.config.url,
-    //   status: response.status,
-    //   data: response.data
-    // });
-    return response.data;
+    console.log('Axios Interceptor Response:', {
+      url: response.config.url,
+      status: response.status,
+      data: response.data,
+      headers: response.headers
+    });
+    return response; // Return the full response, not just response.data
   },
   (error) => {
     console.error('API Error:', {
@@ -53,17 +55,10 @@ api.interceptors.response.use(
       data: error.response?.data,
       message: error.message
     });
-    
-    if (error.response?.status === 401) {
-      // Handle unauthorized access
-      AsyncStorage.removeItem('token');
-      // You might want to trigger a logout action here
 
-    }
-    
     return Promise.reject({
-      status: error.response?.status,
       message: error.response?.data?.message || error.message,
+      status: error.response?.status,
       data: error.response?.data
     });
   }
