@@ -18,36 +18,15 @@ export const authService = {
       
       console.log('Login response:', response);
 
-      // Check if response exists
-      if (!response) {
-        throw new Error('No response from server');
+      if (response.data?.token) {
+        await AsyncStorage.setItem('token', response.data.token);
+        console.log('Token stored successfully');
       }
 
-      // Store token if it exists
-      if (response.token) {
-        await AsyncStorage.setItem('token', response.token);
-      }
-
-      // Return the response even if there's no token
-      // This allows for different response types based on role
-      return {
-        token: response.token,
-        role: response.role || data.selectedRole.toUpperCase(),
-        requirePasswordChange: response.requirePasswordChange,
-        userId: response.userId
-      };
-
+      return response.data;
     } catch (error) {
-      console.error('Login error:', {
-        message: error.message,
-        response: error.response,
-        data: error.data
-      });
-      throw {
-        message: error.message || 'Login failed',
-        status: error.status || 500,
-        data: error.data
-      };
+      console.error('Login error:', error);
+      throw error;
     }
   },
 
@@ -102,19 +81,35 @@ export const authService = {
 
   getTutorList: async () => {
     try {
+      console.log('Fetching tutors...');
       const response = await api.get('/users/tutor-list');
-      console.log('Tutor list response:', response);
-      return response;
+      console.log('Tutor response:', response.data);
+      return response.data;
     } catch (error) {
-      console.error('Get tutor list error:', error);
+      console.error('Error fetching tutors:', error);
       throw error;
     }
   },
 
   getUser: async () => {
-    const token = await AsyncStorage.getItem('token');
-    const user = await jwtDecode(token);  
-    console.log('User response:', user);
-    return user;
+    try {
+      const token = await AsyncStorage.getItem('token');
+      if (!token) {
+        console.log('No token found');
+        return null;
+      }
+
+      const decodedUser = jwtDecode(token);
+      console.log('Decoded user token:', decodedUser);
+
+      // Ensure role is properly set
+      return {
+        ...decodedUser,
+        role: decodedUser.role || 'UNKNOWN'
+      };
+    } catch (error) {
+      console.error('Error in getUser:', error);
+      return null;
+    }
   }
 }; 

@@ -6,7 +6,7 @@ import FormScreen from '../screens/FormScreen';
 
 const Stack = createStackNavigator();
 
-export function HomeStack({ role }) {
+export function HomeStack({ role, handleLogout }) {
   return (
     <Stack.Navigator
       initialRouteName="HomeMain"
@@ -25,6 +25,7 @@ export function HomeStack({ role }) {
       <Stack.Screen 
         name="Form"
         component={FormScreen}
+        initialParams={{ handleLogout }}
         options={({ route }) => ({
           headerTitle: route.params?.formName || 'Form',
           headerShown: true ,

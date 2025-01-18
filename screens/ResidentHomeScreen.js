@@ -66,15 +66,14 @@ function ResidentHomeContent({ navigation }) {
               key={template._id}
               style={styles.categoryButton}
               onPress={() => {
-                console.log('Navigating to form with data:', {
-                  formName: template.formName,
-                  formId: template._id,
-                  formData: template
-                });
+                console.log('Navigating with template:', template);
                 navigation.navigate('Form', {
-                  formName: template.formName,
                   formId: template._id,
-                  formData: template
+                  formName: template.formName,
+                  formData: {
+                    ...template,
+                    fieldTemplates: template.fieldTemplates || []
+                  }
                 });
               }}
             >

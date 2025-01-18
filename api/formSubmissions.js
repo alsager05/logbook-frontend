@@ -1,12 +1,14 @@
 import api from './axios';
 
 export const formSubmissionsService = {
-  submitForm: async (submissionData) => {
+  submitForm: async (data) => {
     try {
-      const response = await api.post('/formSubmitions', submissionData);
-      return response;
+      console.log('Submitting form with data:', data);
+      const response = await api.post('/form-submissions', data);
+      console.log('Form submission response:', response.data);
+      return response.data;
     } catch (error) {
-      console.error('Error submitting form:', error);
+      console.error('Form submission error:', error);
       throw error;
     }
   },

@@ -67,13 +67,11 @@ function AppContent() {
 
   const handleLogout = async () => {
     try {
-      console.log("first")
-      await logout();
-    } catch (error) {
-      console.error("Logout error:", error);
-    } finally {
+      await authService.logout();
       setIsLoggedIn(false);
       setRole('');
+    } catch (error) {
+      console.error("Logout error:", error);
     }
   };
 
@@ -134,7 +132,7 @@ function AppContent() {
           name="Home" 
           options={{ headerShown: false }}
         >
-          {(props) => <HomeStack {...props} role={role} />}
+          {(props) => <HomeStack {...props} handleLogout={handleLogout} role={role} />}
         </Tab.Screen>
         <Tab.Screen 
           name="Announcements" 
