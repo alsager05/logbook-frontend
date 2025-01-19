@@ -6,7 +6,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import { QueryClient, QueryClientProvider, useMutation } from '@tanstack/react-query';
-
+import { createStackNavigator } from '@react-navigation/stack';
 import { HomeStack } from './navigation/HomeStack';
 import AnnouncementScreen from './screens/AnnouncementScreen';
 import SettingsScreen from './screens/SettingsScreen';
@@ -14,9 +14,11 @@ import LoginScreen from './screens/LoginScreen';
 import { useAuth } from './hooks/useAuth';
 import { authService } from './api/auth';
 import ChangePasswordScreen from './screens/ChangePasswordScreen';
-
+import ResidentSubmissionsScreen from './screens/ResidentSubmissionsScreen';
+import FormReviewScreen from './screens/FormReviewScreen';
 
 const Tab = createBottomTabNavigator();
+const Stack = createStackNavigator();
 
 const queryClient = new QueryClient();
 
@@ -36,9 +38,9 @@ function AppContent() {
         setRequirePasswordChange(true);
         setUserId(data.userId);
       } else {
-        // Make sure we have a role
-        const userRole = data.role || data.selectedRole?.toUpperCase();
-        setRole(userRole);
+        const userRole = data.user?.role[0] || data.role[0];
+        console.log('Setting role to:', userRole);
+        setRole(userRole.toUpperCase());
         setIsLoggedIn(true);
       }
     },
@@ -80,8 +82,9 @@ function AppContent() {
     console.log("dd",token)
     if(token){
       const user = await authService.getUser();
+      console.log("user form App",user)
       setIsLoggedIn(token);
-      setRole(user.role);
+      setRole(user.role[0].toUpperCase());
     }
   };
 
@@ -134,6 +137,41 @@ function AppContent() {
         >
           {(props) => <HomeStack {...props} handleLogout={handleLogout} role={role} />}
         </Tab.Screen>
+        {role === 'RESIDENT' && (
+          <Tab.Screen 
+            name="My Submissions"
+            options={{ 
+              headerShown: false,
+              tabBarIcon: ({ focused, color, size }) => (
+                <Ionicons 
+                  name={focused ? 'document-text' : 'document-text-outline'} 
+                  size={size} 
+                  color={color} 
+                />
+              ),
+              tabBarActiveTintColor: Colors.primary,
+              tabBarInactiveTintColor: Colors.inactive,
+            }}
+            children={(props) => (
+              <Stack.Navigator>
+                <Stack.Screen
+                  name="SubmissionsList"
+                  component={ResidentSubmissionsScreen}
+                  options={{
+                    headerTitle: 'My Submissions'
+                  }}
+                />
+                <Stack.Screen
+                  name="FormReview"
+                  component={FormReviewScreen}
+                  options={({ route }) => ({
+                    headerTitle: route.params?.formName || 'Review Form'
+                  })}
+                />
+              </Stack.Navigator>
+            )}
+          />
+        )}
         <Tab.Screen 
           name="Announcements" 
           component={AnnouncementScreen} 

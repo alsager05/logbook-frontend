@@ -1,28 +1,18 @@
 import api from './axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { jwtDecode } from 'jwt-decode';
+import { jwtDecode } from "jwt-decode";
 
 export const authService = {
-  login: async (data) => {
+  login: async (credentials) => {
     try {
-      console.log('Login attempt:', {
-        username: data.username,
-        role: data.selectedRole
-      });
-
-      const response = await api.post('/users/login', {
-        username: data.username,
-        password: data.password,
-        role: data.selectedRole.toUpperCase()
-      });
+      console.log('Login request:', credentials); // Debug log
+      const response = await api.post('/users/login', credentials);
+      console.log('Login response:', response.data); // Debug log
       
-      console.log('Login response:', response);
-
       if (response.data?.token) {
         await AsyncStorage.setItem('token', response.data.token);
-        console.log('Token stored successfully');
       }
-
+      
       return response.data;
     } catch (error) {
       console.error('Login error:', error);
@@ -101,11 +91,11 @@ export const authService = {
 
       const decodedUser = jwtDecode(token);
       console.log('Decoded user token:', decodedUser);
-
-      // Ensure role is properly set
+      
       return {
-        ...decodedUser,
-        role: decodedUser.role || 'UNKNOWN'
+        id: decodedUser.id,
+        username: decodedUser.username,
+        role: decodedUser.role?.[0] || decodedUser.role || 'UNKNOWN'
       };
     } catch (error) {
       console.error('Error in getUser:', error);

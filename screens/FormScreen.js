@@ -10,13 +10,16 @@ import { formSubmissionsService } from '../api/formSubmissions';
 
 export default function FormScreen({ route, navigation }) {
   const queryClient = useQueryClient();
-  const { formId, formName } = route.params || {};
+  const { formId, formName,isReview } = route.params || {};
   const [formData, setFormData] = useState({});
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [dateField, setDateField] = useState(null);
   const [selectedTutor, setSelectedTutor] = useState(null);
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  
+
 
   // Get user data
   useEffect(() => {
@@ -90,7 +93,7 @@ export default function FormScreen({ route, navigation }) {
     },
     enabled: !!formId
   });
-
+console.log("user is this one",user)
   // Handle form submission
   const handleSubmit = async () => {
     try {
@@ -101,13 +104,17 @@ export default function FormScreen({ route, navigation }) {
 
       const submissionData = {
         formtemplate: formId,
-        resident: user._id,
+        resident: user.id,
         tutor: selectedTutor,
         submissionDate: new Date().toISOString(),
-        fieldRecords: Object.entries(formData).map(([fieldName, value]) => ({
-          fieldName,
-          value: value?.toString() || ''
-        }))
+        fieldRecords: Object.entries(formData).map(([fieldName, value]) => {
+          const field = template.fieldTemplates.find(f => f.name === fieldName);
+          return {
+            fieldName,
+            value: value?.toString() || '',
+            fieldTemplate: field?._id
+          };
+        })
       };
 
       await formSubmissionsService.submitForm(submissionData);
@@ -194,6 +201,22 @@ export default function FormScreen({ route, navigation }) {
             placeholder={`Enter ${field.name}`}
             editable={!isReadOnly}
           />
+        );
+      case 'select':
+        return (
+          <View style={[styles.selectContainer, isReadOnly && styles.inputDisabled]}>
+            <Picker
+              enabled={!isReadOnly}
+              selectedValue={formData[field.name] || ''}
+              onValueChange={(value) => !isReadOnly && handleInputChange(field.name, value)}
+              style={[styles.picker, isReadOnly && styles.pickerDisabled]}
+            >
+              <Picker.Item label="Select an option" value="" />
+              {field.options?.map((option) => (
+                <Picker.Item key={option} label={option} value={option} />
+              ))}
+            </Picker>
+          </View>
         );
 
       case 'textarea':
@@ -624,4 +647,4 @@ const styles = StyleSheet.create({
   scaleButtonTextDisabled: {
     color: '#999',
   },
-});
+});               

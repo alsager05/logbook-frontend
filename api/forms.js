@@ -46,5 +46,17 @@ export const formsService = {
       console.error('Error fetching form by id:', error);
       throw error;
     }
+  },
+
+  getTutorPendingForms: async (tutorId) => {
+    try {
+      console.log('Fetching pending forms for tutor:', tutorId);
+      const response = await api.get(`/formSubmitions?tutor=${tutorId}&status=pending`);
+      console.log('Tutor pending forms response:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching tutor pending forms:', error);
+      throw error;
+    }
   }
 }; 

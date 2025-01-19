@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, SafeAreaView } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, SafeAreaView, Alert } from 'react-native';
 import { useAuth } from '../hooks/useAuth';
+import api from '../api/axios';
 
 const Colors = {
   primary: '#000000',
@@ -14,16 +15,20 @@ const Colors = {
 export default function LoginScreen({ onLogin }) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState('');
+  const [roles, setRoles] = useState('');
   const { isLoggingIn } = useAuth();
 
   const handleLogin = () => {
-    if (!username || !password || !role) {
+    if (!username || !password || !roles) {
       alert('Please fill in all fields');
       return;
     }
 
-    onLogin(username, password, role);
+    // Convert role to uppercase to match backend
+    const normalizedRole = roles.toUpperCase();
+    console.log('Submitting login with role:', normalizedRole); // Debug log
+    
+    onLogin(username, password, normalizedRole);
   };
 
   return (
@@ -58,18 +63,18 @@ export default function LoginScreen({ onLogin }) {
 
           <View style={styles.roleContainer}>
             <TouchableOpacity 
-              style={[styles.roleButton, role === 'tutor' && styles.roleButtonActive]}
-              onPress={() => setRole('tutor')}
+              style={[styles.roleButton, roles === 'tutor' && styles.roleButtonActive]}
+              onPress={() => setRoles('tutor')}
             >
-              <Text style={[styles.roleButtonText, role === 'tutor' && styles.roleButtonTextActive]}>
-                Tutor
+              <Text style={[styles.roleButtonText, roles === 'tutor' && styles.roleButtonTextActive]}>
+                tutor
               </Text>
             </TouchableOpacity>
             <TouchableOpacity 
-              style={[styles.roleButton, role === 'resident' && styles.roleButtonActive]}
-              onPress={() => setRole('resident')}
+              style={[styles.roleButton, roles === 'RESIDENT' && styles.roleButtonActive]}
+              onPress={() => setRoles('RESIDENT')}
             >
-              <Text style={[styles.roleButtonText, role === 'resident' && styles.roleButtonTextActive]}>
+              <Text style={[styles.roleButtonText, roles === 'RESIDENT' && styles.roleButtonTextActive]}>
                 Resident
               </Text>
             </TouchableOpacity>
@@ -78,11 +83,11 @@ export default function LoginScreen({ onLogin }) {
           <TouchableOpacity 
             style={[
               styles.button, 
-              (!username || !password || !role) && styles.buttonDisabled,
+              (!username || !password || !roles) && styles.buttonDisabled,
               isLoggingIn && styles.buttonLoading
             ]}
             onPress={handleLogin}
-            disabled={!username || !password || !role || isLoggingIn}
+            disabled={!username || !password || !roles || isLoggingIn}
           >
             <Text style={styles.buttonText}>
               {isLoggingIn ? 'Logging in...' : 'Login'}
@@ -179,4 +184,3 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.inactive,
   },
 });
-

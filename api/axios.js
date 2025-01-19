@@ -4,46 +4,42 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 // Create axios instance with default config
 const api = axios.create({
   // Update this to your actual API endpoint
-  baseURL: 'http://192.168.221.31:8000', // Changed from 8081 to 8000 to match your backend
+  baseURL: 'http://192.168.2.202:8000', // Changed from 8081 to 8000 to match your backend
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json'
   }
 });
 
-// Add request interceptor to include token
+// Add request interceptor
 api.interceptors.request.use(
   async (config) => {
-    const token = await AsyncStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+    try {
+      const token = await AsyncStorage.getItem('token');
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+      return config;
+    } catch (error) {
+      console.error('Request interceptor error:', error);
+      return config;
     }
-    return config;
   },
   (error) => {
+    console.error('Request error:', error);
     return Promise.reject(error);
   }
 );
 
-// Add response interceptor for error handling
+// Add response interceptor
 api.interceptors.response.use(
-  (response) => {
-    console.log('Axios Interceptor Response:', {
-      url: response.config.url,
-      status: response.status,
-      data: response.data,
-      headers: response.headers
+  (response) => response,
+  async (error) => {
+    console.error('Response error:', {
+      message: error.message,
+      response: error.response?.data,
+      status: error.response?.status
     });
-    return response; // Return the full response, not just response.data
-  },
-  (error) => {
-    console.error('API Error:', {
-      url: error.config?.url,
-      status: error.response?.status,
-      data: error.response?.data,
-      message: error.message
-    });
-
     return Promise.reject({
       message: error.response?.data?.message || error.message,
       status: error.response?.status,
