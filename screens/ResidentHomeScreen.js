@@ -54,10 +54,6 @@ function ResidentHomeContent({ navigation }) {
 
   return (
     <ScrollView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.welcomeText}>Home</Text>
-        <Text style={styles.subtitleText}>Select a form to submit</Text>
-      </View>
       
       <View style={styles.buttonContainer}>
         {templates.length > 0 ? (

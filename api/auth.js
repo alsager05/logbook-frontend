@@ -5,9 +5,9 @@ import { jwtDecode } from "jwt-decode";
 export const authService = {
   login: async (credentials) => {
     try {
-      console.log('Login request:', credentials); // Debug log
-      const response = await api.post('/users/login', credentials);
-      console.log('Login response:', response.data); // Debug log
+      console.log('Login request:', credentials);
+      const response = await api.post('/users/loginUser', credentials);
+      console.log('Login response:', response.data);
       
       if (response.data?.token) {
         await AsyncStorage.setItem('token', response.data.token);
@@ -15,7 +15,7 @@ export const authService = {
       
       return response.data;
     } catch (error) {
-      console.error('Login error:', error);
+      console.error('Login error:', error.response?.data || error);
       throw error;
     }
   },
@@ -90,12 +90,12 @@ export const authService = {
       }
 
       const decodedUser = jwtDecode(token);
-      console.log('Decoded user token:', decodedUser);
+      console.log('Decoded user:', decodedUser);
       
       return {
         id: decodedUser.id,
         username: decodedUser.username,
-        role: decodedUser.role?.[0] || decodedUser.role || 'UNKNOWN'
+        role: decodedUser.roles?.[0] || decodedUser.roles[0] || 'UNKNOWN'
       };
     } catch (error) {
       console.error('Error in getUser:', error);

@@ -38,17 +38,17 @@ export default function FormScreen({ route, navigation }) {
           return;
         }
 
-        // Normalize the role data
+        // Normalize the roles data
         let normalizedRole = '';
-        if (Array.isArray(userData.role)) {
-          normalizedRole = userData.role[0]?.toString() || 'UNKNOWN';
+        if (Array.isArray(userData.roles)) {
+          normalizedRole = userData.roles[0]?.toString() || 'UNKNOWN';
         } else {
-          normalizedRole = userData.role?.toString() || 'UNKNOWN';
+          normalizedRole = userData.roles?.toString() || 'UNKNOWN';
         }
 
         const userWithRole = {
           ...userData,
-          role: normalizedRole
+          roles: normalizedRole
         };
         
         console.log('Processed user data:', userWithRole);
@@ -63,23 +63,23 @@ export default function FormScreen({ route, navigation }) {
     getUser();
   }, [navigation]);
 
-  // Update the role check function
+  // Update the roles check function
   const isResident = useCallback((userRole) => {
     if (!userRole) return false;
-    const role = userRole.toString().toUpperCase();
-    return role === 'RESIDENT';
+    const roles = userRole.toString().toUpperCase();
+    return roles === 'resident';
   }, []);
 
   // Get tutors list
   const { data: tutors, isLoading: isLoadingTutors, error: tutorError } = useQuery({
     queryKey: ['tutors'],
     queryFn: async () => {
-      console.log('Fetching tutors for role:', user?.role);
+      console.log('Fetching tutors for roles:', user?.roles);
       const response = await authService.getTutorList();
       console.log('Tutor query response:', response);
       return response;
     },
-    enabled: !!user && isResident(user.role)
+    enabled: !!user && isResident(user.roles)
   });
 
   // Add this query for the form template
@@ -97,7 +97,7 @@ console.log("user is this one",user)
   // Handle form submission
   const handleSubmit = async () => {
     try {
-      if (user?.role?.toUpperCase() === 'RESIDENT' && !selectedTutor) {
+      if (user?.roles?.toUpperCase() === 'resident' && !selectedTutor) {
         Alert.alert('Error', 'Please select a tutor');
         return;
       }
@@ -131,25 +131,30 @@ console.log("user is this one",user)
 
   // Render tutor selection for residents
   const renderTutorSelection = () => {
-    if (user?.role !== 'RESIDENT') return null;
+    if (user?.roles !== 'resident') return null;
 
     return (
       <View style={styles.fieldContainer}>
         <Text style={styles.label}>
-          Select Tutor <Text style={styles.required}>*</Text>
+          Select Tutor <Text style={styles.required}></Text>
         </Text>
-        <View style={styles.pickerContainer}>
+        <View style={styles.enhancedPickerContainer}>
           <Picker
             selectedValue={selectedTutor}
             onValueChange={setSelectedTutor}
-            style={styles.picker}
+            style={styles.enhancedPicker}
           >
-            <Picker.Item label="Select a tutor..." value="" />
+            <Picker.Item 
+              label="Select a tutor..." 
+              value="" 
+              style={styles.pickerPlaceholder}
+            />
             {tutors?.map(tutor => (
               <Picker.Item
                 key={tutor._id}
                 label={tutor.username}
                 value={tutor._id}
+                style={styles.pickerItem}
               />
             ))}
           </Picker>
@@ -158,13 +163,13 @@ console.log("user is this one",user)
     );
   };
 
-  // Add this console log to debug user role
+  // Add this console log to debug user roles
   useEffect(() => {
     if (user) {
       console.log('Current user:', {
-        role: user.role,
+        roles: user.roles,
         id: user._id,
-        roleUpperCase: user.role?.toUpperCase()
+        roleUpperCase: user.roles?.toUpperCase()
       });
     }
   }, [user]);
@@ -188,7 +193,7 @@ console.log("user is this one",user)
 
   // Update the renderField function to use these handlers
   const renderField = (field) => {
-    const isReadOnly = isResident(user?.role) && field.section === "2";
+    const isReadOnly = isResident(user?.roles) && field.section === "2";
     console.log('Rendering field:', { name: field.name, section: field.section, isReadOnly });
 
     switch (field.type?.toLowerCase()) {
@@ -204,16 +209,28 @@ console.log("user is this one",user)
         );
       case 'select':
         return (
-          <View style={[styles.selectContainer, isReadOnly && styles.inputDisabled]}>
+          <View style={styles.enhancedPickerContainer}>
             <Picker
               enabled={!isReadOnly}
               selectedValue={formData[field.name] || ''}
               onValueChange={(value) => !isReadOnly && handleInputChange(field.name, value)}
-              style={[styles.picker, isReadOnly && styles.pickerDisabled]}
+              style={[
+                styles.enhancedPicker,
+                isReadOnly && { color: '#999' }
+              ]}
             >
-              <Picker.Item label="Select an option" value="" />
+              <Picker.Item 
+                label={`Select ${field.name}`} 
+                value="" 
+                style={styles.pickerPlaceholder}
+              />
               {field.options?.map((option) => (
-                <Picker.Item key={option} label={option} value={option} />
+                <Picker.Item 
+                  key={option} 
+                  label={option} 
+                  value={option}
+                  style={styles.pickerItem}
+                />
               ))}
             </Picker>
           </View>
@@ -293,7 +310,7 @@ console.log("user is this one",user)
     }
   };
 
-  if (isLoading || isLoadingTemplate || (user?.role?.toUpperCase() === 'RESIDENT' && isLoadingTutors)) {
+  if (isLoading || isLoadingTemplate || (user?.roles?.toUpperCase() === 'resident' && isLoadingTutors)) {
     return (
       <View style={styles.loadingContainer}>
         <Text>Loading...</Text>
@@ -319,7 +336,7 @@ console.log("user is this one",user)
             if (templateError) {
               queryClient.invalidateQueries(['formTemplate', formId]);
             }
-            if (tutorError && user?.role?.toUpperCase() === 'RESIDENT') {
+            if (tutorError && user?.roles?.toUpperCase() === 'resident') {
               queryClient.invalidateQueries(['tutors']);
             }
           }}
@@ -336,23 +353,28 @@ console.log("user is this one",user)
         <>
           <Text style={styles.title}>{template.name}</Text>
           
-          {isResident(user?.role) && (
+          {isResident(user?.roles) && (
             <View style={styles.fieldContainer}>
               <Text style={styles.label}>
-                Select Tutor <Text style={styles.required}>*</Text>
+                Select Tutor <Text style={styles.required}></Text>
               </Text>
-              <View style={styles.pickerContainer}>
+              <View style={styles.enhancedPickerContainer}>
                 <Picker
                   selectedValue={selectedTutor}
                   onValueChange={(value) => setSelectedTutor(value)}
-                  style={styles.picker}
+                  style={styles.enhancedPicker}
                 >
-                  <Picker.Item label="Select a tutor..." value="" />
+                  <Picker.Item 
+                    label="Select a tutor..." 
+                    value="" 
+                    style={styles.pickerPlaceholder}
+                  />
                   {tutors?.map((tutor) => (
                     <Picker.Item
                       key={tutor._id}
                       label={tutor.username}
                       value={tutor._id}
+                      style={styles.pickerItem}
                     />
                   ))}
                 </Picker>
@@ -388,10 +410,10 @@ console.log("user is this one",user)
           <TouchableOpacity 
             style={[
               styles.submitButton,
-              (!selectedTutor && isResident(user?.role)) && styles.submitButtonDisabled
+              (!selectedTutor && isResident(user?.roles)) && styles.submitButtonDisabled
             ]}
             onPress={handleSubmit}
-            disabled={!selectedTutor && isResident(user?.role)}
+            disabled={!selectedTutor && isResident(user?.roles)}
           >
             <Text style={styles.submitButtonText}>Submit Form</Text>
           </TouchableOpacity>
@@ -478,7 +500,7 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   pickerPlaceholder: {
-    color: '#999',
+    color: '#666',
   },
   pickerOption: {
     color: '#000',
@@ -507,6 +529,7 @@ const styles = StyleSheet.create({
   },
   required: {
     color: '#ff0000',
+    fontWeight: 'bold',
   },
   details: {
     fontSize: 14,
@@ -646,5 +669,32 @@ const styles = StyleSheet.create({
   },
   scaleButtonTextDisabled: {
     color: '#999',
+  },
+  enhancedPickerContainer: {
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#000',
+    borderRadius: 8,
+    marginTop: 8,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.2,
+    shadowRadius: 1.41,
+    elevation: 2,
+    overflow: 'hidden',
+  },
+  enhancedPicker: {
+    height: 50,
+    width: '100%',
+    backgroundColor: 'transparent',
+    color: '#000',
+    paddingHorizontal: 10,
+  },
+  pickerItem: {
+    color: '#000',
+    fontSize: 16,
   },
 });               

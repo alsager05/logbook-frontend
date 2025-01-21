@@ -24,11 +24,8 @@ export default function LoginScreen({ onLogin }) {
       return;
     }
 
-    // Convert role to uppercase to match backend
-    const normalizedRole = roles.toUpperCase();
-    console.log('Submitting login with role:', normalizedRole); // Debug log
-    
-    onLogin(username, password, normalizedRole);
+    console.log('Submitting login with role:', roles);
+    onLogin(username, password, roles);
   };
 
   return (
@@ -67,14 +64,14 @@ export default function LoginScreen({ onLogin }) {
               onPress={() => setRoles('tutor')}
             >
               <Text style={[styles.roleButtonText, roles === 'tutor' && styles.roleButtonTextActive]}>
-                tutor
+                Tutor
               </Text>
             </TouchableOpacity>
             <TouchableOpacity 
-              style={[styles.roleButton, roles === 'RESIDENT' && styles.roleButtonActive]}
-              onPress={() => setRoles('RESIDENT')}
+              style={[styles.roleButton, roles === 'resident' && styles.roleButtonActive]}
+              onPress={() => setRoles('resident')}
             >
-              <Text style={[styles.roleButtonText, roles === 'RESIDENT' && styles.roleButtonTextActive]}>
+              <Text style={[styles.roleButtonText, roles === 'resident' && styles.roleButtonTextActive]}>
                 Resident
               </Text>
             </TouchableOpacity>

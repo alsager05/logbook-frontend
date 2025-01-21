@@ -3,8 +3,8 @@ import ResidentSubmissionsScreen from '../screens/ResidentSubmissionsScreen';
 
 const Tab = createBottomTabNavigator();
 
-export function BottomTabs({ role }) {
-  const isResident = role?.toString().toUpperCase() === 'RESIDENT';
+export function BottomTabs({ roles}) {
+  const isResident = roles?.toString().toUpperCase() === 'resident';
 
   return (
     <Tab.Navigator>
