@@ -11,7 +11,6 @@ export default function ChangePasswordScreen({ userId, onPasswordChanged }) {
   const changePasswordMutation = useMutation({
     mutationFn: (data) => authService.changePassword(data),
     onSuccess: (data) => {
-      console.log('Password changed successfully');
       onPasswordChanged();
     },
     onError: (error) => {

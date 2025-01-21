@@ -3,31 +3,44 @@ import { createStackNavigator } from '@react-navigation/stack';
 import TutorHomeScreen from '../screens/TutorHomeScreen';
 import ResidentHomeScreen from '../screens/ResidentHomeScreen';
 import FormScreen from '../screens/FormScreen';
+import FormReviewScreen from '../screens/FormReviewScreen';
 
 const Stack = createStackNavigator();
 
-export function HomeStack({ role }) {
+export function HomeStack({ role, handleLogout }) {
+
+  // Normalize the role check
+  const normalizedRole = role?.toString().toUpperCase();
+
+  const isTutor = normalizedRole === 'TUTOR';
+  const HomeComponent = isTutor ? TutorHomeScreen : ResidentHomeScreen;
+  
+
   return (
-    <Stack.Navigator
-      initialRouteName="HomeMain"
-      screenOptions={{
-        headerShown: true
-      }}
-    >
+    <Stack.Navigator screenOptions={{headerBackTitle:'Back',}}>
       <Stack.Screen 
         name="HomeMain" 
-        component={role === 'tutor' ? TutorHomeScreen : ResidentHomeScreen}
+        component={HomeComponent}
         options={{ 
-          headerTitle: 'Home',
-          headerShown: false 
+          
+          headerShown:isTutor ? true : false,
+          headerTitle: isTutor ? 'Tutor Dashboard' : 'Resident Dashboard',
         }}
       />
       <Stack.Screen 
-        name="Form"
+        name="Form" 
         component={FormScreen}
         options={({ route }) => ({
           headerTitle: route.params?.formName || 'Form',
-          headerShown: true 
+          headerShown: true
+        })}
+      />
+      <Stack.Screen 
+        name="FormReview" 
+        component={FormReviewScreen}
+        options={({ route }) => ({
+          headerTitle: route.params?.formName || 'Review Form',
+          headerShown: true
         })}
       />
     </Stack.Navigator>

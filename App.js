@@ -6,7 +6,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import { QueryClient, QueryClientProvider, useMutation } from '@tanstack/react-query';
-
+import { createStackNavigator } from '@react-navigation/stack';
 import { HomeStack } from './navigation/HomeStack';
 import AnnouncementScreen from './screens/AnnouncementScreen';
 import SettingsScreen from './screens/SettingsScreen';
@@ -14,9 +14,11 @@ import LoginScreen from './screens/LoginScreen';
 import { useAuth } from './hooks/useAuth';
 import { authService } from './api/auth';
 import ChangePasswordScreen from './screens/ChangePasswordScreen';
-
+import ResidentSubmissionsScreen from './screens/ResidentSubmissionsScreen';
+import FormReviewScreen from './screens/FormReviewScreen';
 
 const Tab = createBottomTabNavigator();
+const Stack = createStackNavigator();
 
 const queryClient = new QueryClient();
 
@@ -29,19 +31,19 @@ function AppContent() {
   const { login, logout, isLoggingIn, loginError } = useAuth();
 
   const {mutate:loginMutation} = useMutation({
-    mutationFn: (data)=>authService.login(data),
-    onSuccess: (data)=>{
-      console.log('login', data);
+    mutationFn: (data) => authService.login(data),
+    onSuccess: (data) => {
       if (data.requirePasswordChange) {
         setRequirePasswordChange(true);
         setUserId(data.userId);
       } else {
-        setRole(data.role);
+        const userRole = data.user?.role[0] || data.role[0];
+        setRole(userRole.toUpperCase());
         setIsLoggedIn(true);
       }
     },
-    onError: (error)=>{
-      console.log('login error', error);
+    onError: (error) => {
+      console.error('Login mutation error:', error);
       Alert.alert(
         'Login Failed',
         error.message || 'An error occurred during login'
@@ -51,45 +53,35 @@ function AppContent() {
 
 
   const handleLogin = async (username, password, selectedRole) => {
-    if (username.trim() === "" || password.trim() === "" || !selectedRole) {
-      Alert.alert(
-        "Error",
-        "Please enter username, password, and select a role"
-      );
+    if (!username?.trim() || !password?.trim() || !selectedRole) {
+      Alert.alert('Error', 'Please enter username, password, and select a role');
       return;
     }
 
-    try {
-      console.log('login', username, password, selectedRole);
-      loginMutation({username, password, selectedRole});
-    } catch (error) {
-      console.error('Login error details:', error);
-      Alert.alert(
-        'Login Failed', 
-        error.response?.data?.message || 
-        error.response?.data?.error || 
-        error.message || 
-        'An error occurred during login. Please check your credentials.'
-
-      );
-    }
+    loginMutation({
+      username: username.trim(),
+      password: password.trim(),
+      selectedRole
+    });
   };
 
   const handleLogout = async () => {
     try {
-      await logout();
-    } catch (error) {
-      console.error("Logout error:", error);
-    } finally {
+      await authService.logout();
       setIsLoggedIn(false);
       setRole('');
+    } catch (error) {
+      console.error("Logout error:", error);
     }
   };
 
   const checkToken = async () => {
     const token = await authService.checkToken();
-    console.log(token)
-    setIsLoggedIn(token);
+    if(token){
+      const user = await authService.getUser();
+      setIsLoggedIn(token);
+      setRole(user.role[0].toUpperCase());
+    }
   };
 
   useEffect(()=>{
@@ -108,6 +100,7 @@ function AppContent() {
       />
     );
   }
+
 
   if (!isLoggedIn) {
     return <LoginScreen onLogin={handleLogin} />;
@@ -137,8 +130,43 @@ function AppContent() {
           name="Home" 
           options={{ headerShown: false }}
         >
-          {(props) => <HomeStack {...props} role={role} />}
+          {(props) => <HomeStack {...props} handleLogout={handleLogout} role={role} />}
         </Tab.Screen>
+        {role === 'RESIDENT' && (
+          <Tab.Screen 
+            name="My Submissions"
+            options={{ 
+              headerShown: false,
+              tabBarIcon: ({ focused, color, size }) => (
+                <Ionicons 
+                  name={focused ? 'document-text' : 'document-text-outline'} 
+                  size={size} 
+                  color={color} 
+                />
+              ),
+              tabBarActiveTintColor: Colors.primary,
+              tabBarInactiveTintColor: Colors.inactive,
+            }}
+            children={(props) => (
+              <Stack.Navigator>
+                <Stack.Screen
+                  name="SubmissionsList"
+                  component={ResidentSubmissionsScreen}
+                  options={{
+                    headerTitle: 'My Submissions'
+                  }}
+                />
+                <Stack.Screen
+                  name="FormReview"
+                  component={FormReviewScreen}
+                  options={({ route }) => ({
+                    headerTitle: route.params?.formName || 'Review Form'
+                  })}
+                />
+              </Stack.Navigator>
+            )}
+          />
+        )}
         <Tab.Screen 
           name="Announcements" 
           component={AnnouncementScreen} 
@@ -147,7 +175,7 @@ function AppContent() {
           name="Settings" 
           options={{ headerShown: false }}
         >
-          {(props) => <SettingsScreen {...props} onLogout={handleLogout} role={role} />}
+          {(props) => <SettingsScreen {...props} handleLogout={handleLogout} role={role} />}
         </Tab.Screen>
       </Tab.Navigator>
     </NavigationContainer>

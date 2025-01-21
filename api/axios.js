@@ -4,66 +4,45 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 // Create axios instance with default config
 const api = axios.create({
   // Update this to your actual API endpoint
-  baseURL: 'http://192.168.2.203:8000', // Replace with your actual backend URL
- 
-
+  baseURL: 'http://192.168.2.202:8000', // Changed from 8081 to 8000 to match your backend
+  headers: {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json'
+  }
 });
 
-// Add request interceptor for auth token
+// Add request interceptor
 api.interceptors.request.use(
   async (config) => {
     try {
-      const token = await AsyncStorage.getItem("token");
+      const token = await AsyncStorage.getItem('token');
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
       }
-      console.log('Request Config:', {
-        url: config.url,
-        method: config.method,
-        headers: config.headers,
-        data: config.data
-      });
       return config;
     } catch (error) {
-      console.error('Error getting token:', error);
+      console.error('Request interceptor error:', error);
       return config;
-
     }
   },
   (error) => {
-    console.error('Request interceptor error:', error);
+    console.error('Request error:', error);
     return Promise.reject(error);
   }
 );
 
-// Add response interceptor for error handling
+// Add response interceptor
 api.interceptors.response.use(
-  (response) => {
-    // console.log('API Response:', {
-    //   url: response.config.url,
-    //   status: response.status,
-    //   data: response.data
-    // });
-    return response.data;
-  },
-  (error) => {
-    console.error('API Error:', {
-      url: error.config?.url,
-      status: error.response?.status,
-      data: error.response?.data,
-      message: error.message
+  (response) => response,
+  async (error) => {
+    console.error('Response error:', {
+      message: error.message,
+      response: error.response?.data,
+      status: error.response?.status
     });
-    
-    if (error.response?.status === 401) {
-      // Handle unauthorized access
-      AsyncStorage.removeItem('token');
-      // You might want to trigger a logout action here
-
-    }
-    
     return Promise.reject({
-      status: error.response?.status,
       message: error.response?.data?.message || error.message,
+      status: error.response?.status,
       data: error.response?.data
     });
   }

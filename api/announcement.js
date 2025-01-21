@@ -1,9 +1,8 @@
 import api from "./axios";
 export const getAllAnnouncements = async () => {
   try {
-    const response = await api.get("/announcements/");
-    console.log("hhh", response);
-    return response;
+    const response = await api.get("/announcements");
+    return response.data;
   } catch (error) {
     console.error("Error fetching data:", error);
   }

@@ -1,27 +1,19 @@
 import api from './axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { jwtDecode } from 'jwt-decode';
+import { jwtDecode } from "jwt-decode";
 
 export const authService = {
-  login: async (data) => {
+  login: async (credentials) => {
     try {
-      console.log('Attempting login with:', data);
-      const response = await api.post('/users/login', data);
+      const response = await api.post('/users/login', credentials);
       
-      console.log('Login response:', response);
-
-      if (response.token) {
-        await AsyncStorage.setItem('token', response.token);
+      if (response.data?.token) {
+        await AsyncStorage.setItem('token', response.data.token);
       }
       
-      return response;
+      return response.data;
     } catch (error) {
-      console.error('Login error details:', {
-        message: error.message,
-        status: error.status,
-        data: error.data,
-        stack: error.stack
-      });
+      console.error('Login error:', error);
       throw error;
     }
   },
@@ -46,7 +38,6 @@ export const authService = {
 
   changePassword: async (data) => {
     try {
-      console.log('Changing password for user:', data);
       // const token = await AsyncStorage.getItem('token');
       // console.log('Token:', token);
       // const user = jwtDecode(token);
@@ -56,7 +47,6 @@ export const authService = {
        
       );
       
-      console.log('Change password response:', response);
 
       if (response.token) {
         await AsyncStorage.setItem('token', response.token);
@@ -70,6 +60,37 @@ export const authService = {
         data: error.data
       });
       throw error;
+    }
+  },
+
+  getTutorList: async () => {
+    try {
+      const response = await api.get('/users/tutor-list');
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching tutors:', error);
+      throw error;
+    }
+  },
+
+  getUser: async () => {
+    try {
+      const token = await AsyncStorage.getItem('token');
+      if (!token) {
+        console.log('No token found');
+        return null;
+      }
+
+      const decodedUser = jwtDecode(token);
+      
+      return {
+        id: decodedUser.id,
+        username: decodedUser.username,
+        role: decodedUser.role||  'UNKNOWN'
+      };
+    } catch (error) {
+      console.error('Error in getUser:', error);
+      return null;
     }
   }
 }; 

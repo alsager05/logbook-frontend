@@ -1,66 +1,165 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Platform } from 'react-native';
+import React, { useEffect, useState, useCallback } from 'react';
+import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Platform, Alert } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Ionicons } from '@expo/vector-icons';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { formsService } from '../api/forms';
+import { authService } from '../api/auth';
+import { formSubmissionsService } from '../api/formSubmissions';
+import CustomDropdown from '../components/CustomDropdown';
 
-// Helper function to check numeric fields
-const isNumericField = (fieldName) => {
-  if (!fieldName || typeof fieldName !== 'string') return false;
-  return /^\d+\./.test(fieldName);
-};
-
-
-export default function FormScreen({ route, navigation, role }) {
-  const { formId, formName } = route.params || {};
+export default function FormScreen({ route, navigation }) {
+  const queryClient = useQueryClient();
+  const { formId, formName,isReview } = route.params || {};
   const [formData, setFormData] = useState({});
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [dateField, setDateField] = useState(null);
-  const currentRole = role?.toUpperCase();
+  const [selectedTutor, setSelectedTutor] = useState(null);
+  const [user, setUser] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Fetch form template using useQuery
-  const { 
-    data: template, 
-    isLoading, 
-    error 
-  } = useQuery({
-    queryKey: ['formTemplate', formId],
-    queryFn: () => formsService.getFormById(formId),
-    enabled: !!formId,
-    onSuccess: (data) => {
-      console.log('Form template fetched:', data);
+  
+
+
+  // Get user data
+  useEffect(() => {
+    const getUser = async () => {
+      try {
+        setIsLoading(true);
+        const userData = await authService.getUser();
+        
+        if (!userData) {
+          Alert.alert(
+            'Session Expired',
+            'Please log in again',
+            [{ text: 'OK', onPress: () => navigation.navigate('Login') }]
+          );
+          return;
+        }
+
+        // Normalize the role data
+        let normalizedRole = '';
+        if (Array.isArray(userData.role)) {
+          normalizedRole = userData.role[0]?.toString() || 'UNKNOWN';
+        } else {
+          normalizedRole = userData.role?.toString() || 'UNKNOWN';
+        }
+
+        const userWithRole = {
+          ...userData,
+          role: normalizedRole
+        };
+        
+        setUser(userWithRole);
+      } catch (error) {
+        console.error('Error getting user:', error);
+        Alert.alert('Error', 'Failed to load user data');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    getUser();
+  }, [navigation]);
+
+  // Update the role check function
+  const isResident = useCallback((userRole,fieldResponse) => {
+    if (!userRole) return false;
+    const role = userRole.toString().toUpperCase();
+    const response = fieldResponse?.toString().toUpperCase();
+    return role !== response;
+  }, []);
+
+  // Get tutors list
+  const { data: tutors, isLoading: isLoadingTutors, error: tutorError } = useQuery({
+    queryKey: ['tutors'],
+    queryFn: async () => {
+      const response = await authService.getTutorList();
+      return response;
     },
-    onError: (error) => {
-      console.error('Error fetching form template:', error);
-    }
+    enabled: !!user && isResident(user.role)
   });
 
-  // Show loading state
-  if (isLoading) {
+  // Add this query for the form template
+  const { data: template, isLoading: isLoadingTemplate, error: templateError } = useQuery({
+    queryKey: ['formTemplate', formId],
+    queryFn: async () => {
+      const response = await formsService.getFormById(formId);
+      return response;
+    },
+    enabled: !!formId
+  });
+  // Handle form submission
+  const handleSubmit = async () => {
+    try {
+      if (user?.role?.toUpperCase() === 'RESIDENT' && !selectedTutor) {
+        Alert.alert('Error', 'Please select a tutor');
+        return;
+      }
+
+      const submissionData = {
+        formtemplate: formId,
+        resident: user.id,
+        tutor: selectedTutor,
+        submissionDate: new Date().toISOString(),
+        fieldRecords: Object.entries(formData).map(([fieldName, value]) => {
+          const field = template.fieldTemplates.find(f => f.name === fieldName);
+          return {
+            fieldName,
+            value: value?.toString() || '',
+            fieldTemplate: field?._id
+          };
+        })
+      };
+
+      await formSubmissionsService.submitForm(submissionData);
+      
+      Alert.alert(
+        'Success',
+        'Form submitted successfully to the selected tutor',
+        [{ text: 'OK', onPress: () => navigation.goBack() }]
+      );
+    } catch (error) {
+      Alert.alert('Error', error.message || 'Failed to submit form');
+    }
+  };
+
+  // Render tutor selection for residents
+  const renderTutorSelection = () => {
+    if (user?.role !== 'RESIDENT') return null;
+
     return (
-      <View style={styles.loadingContainer}>
-        <Text>Loading form...</Text>
+      <View style={styles.fieldContainer}>
+        <Text style={styles.label}>
+          Select Tutor <Text style={styles.required}>*</Text>
+        </Text>
+        <View style={styles.pickerContainer}>
+          <CustomDropdown
+            options={tutors?.map(tutor => tutor.username) || []}
+            selectedValue={selectedTutor ? tutors?.find(t => t._id === selectedTutor)?.username : ''}
+            onValueChange={(username) => {
+              const tutor = tutors?.find(t => t.username === username);
+              setSelectedTutor(tutor?._id);
+            }}
+            placeholder="Select a tutor..."
+          />
+        </View>
       </View>
     );
-  }
+  };
 
-  // Show error state
-  if (error) {
-    return (
-      <View style={styles.errorContainer}>
-        <Text>Error loading form: {error.message}</Text>
-        <TouchableOpacity 
-          style={styles.retryButton}
-          onPress={() => navigation.goBack()}
-        >
-          <Text style={styles.retryButtonText}>Go Back</Text>
-        </TouchableOpacity>
-      </View>
-    );
-  }
+  // Add this console log to debug user role
+  useEffect(() => {
+    if (user) {
+      console.log('Current user:', {
+        role: user.role,
+        id: user._id,
+        roleUpperCase: user.role?.toUpperCase()
+      });
+    }
+  }, [user]);
 
+  // Add this function to render individual fields
   const handleInputChange = (fieldName, value) => {
     setFormData(prev => ({
       ...prev,
@@ -68,6 +167,7 @@ export default function FormScreen({ route, navigation, role }) {
     }));
   };
 
+  // Add this for date handling
   const handleDateChange = (event, selectedDate) => {
     setShowDatePicker(false);
     if (selectedDate && dateField) {
@@ -75,8 +175,10 @@ export default function FormScreen({ route, navigation, role }) {
     }
   };
 
+  // Update the renderField function to use these handlers
   const renderField = (field) => {
-    const isReadOnly = currentRole === 'RESIDENT' && field.section === "2";
+    const isReadOnly = isResident(user?.role,field.response);
+   
 
     switch (field.type?.toLowerCase()) {
       case 'text':
@@ -89,35 +191,16 @@ export default function FormScreen({ route, navigation, role }) {
             editable={!isReadOnly}
           />
         );
-
-      case 'date':
+      case 'select':
         return (
-          <View>
-            <TouchableOpacity 
-              style={[styles.dateButton, isReadOnly && styles.inputDisabled]}
-              onPress={() => {
-                if (!isReadOnly) {
-                  setDateField(field.name);
-                  setShowDatePicker(true);
-                }
-              }}
+          <View style={[styles.selectContainer, isReadOnly && styles.inputDisabled]}>
+            <CustomDropdown
+              options={field.options || []}
+              selectedValue={formData[field.name] || ''}
+              onValueChange={(value) => !isReadOnly && handleInputChange(field.name, value)}
+              placeholder={`Select ${field.name}`}
               disabled={isReadOnly}
-            >
-              <View style={styles.dateButtonContent}>
-                <Ionicons name="calendar-outline" size={24} color="#666" />
-                <Text style={styles.dateButtonText}>
-                  {formData[field.name] || 'Select Date'}
-                </Text>
-              </View>
-            </TouchableOpacity>
-            {showDatePicker && dateField === field.name && (
-              <DateTimePicker
-                value={formData[field.name] ? new Date(formData[field.name]) : new Date()}
-                mode="date"
-                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                onChange={handleDateChange}
-              />
-            )}
+            />
           </View>
         );
 
@@ -135,53 +218,39 @@ export default function FormScreen({ route, navigation, role }) {
           />
         );
 
-      case 'select':
-        if (field.name.includes('safely perform')) {
-          return (
-            <View style={styles.yesNoContainer}>
-              {['Yes', 'No'].map(option => (
-                <TouchableOpacity
-                  key={option}
-                  style={[
-                    styles.yesNoButton,
-                    formData[field.name] === option && styles.yesNoButtonSelected,
-                    isReadOnly && styles.yesNoButtonDisabled
-                  ]}
-                  onPress={() => !isReadOnly && handleInputChange(field.name, option)}
-                  disabled={isReadOnly}
-                >
-                  <Text style={[
-                    styles.yesNoButtonText,
-                    formData[field.name] === option && styles.yesNoButtonTextSelected,
-                    isReadOnly && styles.yesNoButtonTextDisabled
-                  ]}>
-                    {option}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          );
-        }
+      case 'date':
         return (
-          <View style={[styles.pickerContainer, isReadOnly && styles.inputDisabled]}>
-            <Picker
-              enabled={!isReadOnly}
-              selectedValue={formData[field.name]}
-              onValueChange={(value) => handleInputChange(field.name, value)}
-              style={styles.picker}
+          <View>
+            <TouchableOpacity 
+              style={[styles.dateButton, isReadOnly && styles.inputDisabled]}
+              onPress={() => {
+                if (!isReadOnly) {
+                  setDateField(field.name);
+                  setShowDatePicker(true);
+                }
+              }}
+              disabled={isReadOnly}
             >
-              <Picker.Item label={`Select ${field.name}`} value="" />
-              {field.options?.map(option => (
-                <Picker.Item key={option} label={option} value={option} />
-              ))}
-            </Picker>
+              <Text style={styles.dateButtonText}>
+                {formData[field.name] || 'Select Date'}
+              </Text>
+              <Ionicons name="calendar-outline" size={24} color="#666" />
+            </TouchableOpacity>
+            {showDatePicker && dateField === field.name && (
+              <DateTimePicker
+                value={formData[field.name] ? new Date(formData[field.name]) : new Date()}
+                mode="date"
+                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                onChange={handleDateChange}
+              />
+            )}
           </View>
         );
 
       case 'scale':
         return (
           <View style={styles.scaleContainer}>
-            {field.scaleOptions?.map(option => (
+            {field.scaleOptions?.map((option) => (
               <TouchableOpacity
                 key={option}
                 style={[
@@ -209,64 +278,102 @@ export default function FormScreen({ route, navigation, role }) {
     }
   };
 
-  const handleSubmit = async () => {
-    try {
-      // Validate required fields
-      const requiredFields = template.fieldTemplates.filter(field => field.required);
-      const missingFields = requiredFields.filter(field => !formData[field.name]);
-      
-      if (missingFields.length > 0) {
-        alert(`Please fill in all required fields: ${missingFields.map(f => f.name).join(', ')}`);
-        return;
-      }
+  if (isLoading || isLoadingTemplate || (user?.role?.toUpperCase() === 'RESIDENT' && isLoadingTutors)) {
+    return (
+      <View style={styles.loadingContainer}>
+        <Text>Loading...</Text>
+      </View>
+    );
+  }
 
-      // Submit form data
-      console.log('Submitting form data:', formData);
-      // Add your API call here
-      
-    } catch (error) {
-      console.error('Error submitting form:', error);
-      alert('Failed to submit form. Please try again.');
-    }
-  };
+  if (!user) {
+    return (
+      <View style={styles.errorContainer}>
+        <Text>Please log in to continue</Text>
+      </View>
+    );
+  }
+
+  if (templateError || tutorError) {
+    return (
+      <View style={styles.errorContainer}>
+        <Text>Error: {templateError?.message || tutorError?.message}</Text>
+        <TouchableOpacity 
+          style={styles.retryButton}
+          onPress={() => {
+            if (templateError) {
+              queryClient.invalidateQueries(['formTemplate', formId]);
+            }
+            if (tutorError && user?.role?.toUpperCase() === 'RESIDENT') {
+              queryClient.invalidateQueries(['tutors']);
+            }
+          }}
+        >
+          <Text style={styles.retryButtonText}>Retry</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
 
   return (
     <ScrollView style={styles.container}>
       {template && (
         <>
           <Text style={styles.title}>{template.name}</Text>
-
-            {/* Scale Description */}
-            {template?.scaleDescription && (
-              <View style={styles.scaleDescriptionContainer}>
-                <Text style={styles.scaleDescriptionTitle}>Evaluation Scale Guide</Text>
-                <ScrollView 
-                  style={styles.scaleDescriptionScroll}
-                  nestedScrollEnabled={true}
-                >
-                  <Text style={styles.scaleDescription}>{template.scaleDescription}</Text>
-                </ScrollView>
-              </View>
-            )}
           
-          {template.fieldTemplates?.map((field, index) => {
-            console.log('Field:', field);
-            return (
-              <View key={index} style={styles.fieldContainer}>
-                <Text style={styles.label}>
-                  {field.name}
-                  {field.required && <Text style={styles.required}> *</Text>}
-                </Text>
-                {field.description && (
-                  <Text style={styles.details}>{field.description}</Text>
-                )}
-                {renderField(field)}
+          {isResident(user?.role) && (
+            <View style={styles.fieldContainer}>
+              <Text style={styles.label}>
+                Select Tutor <Text style={styles.required}>*</Text>
+              </Text>
+              <View style={styles.pickerContainer}>
+                <CustomDropdown
+                  options={tutors?.map(tutor => tutor.username) || []}
+                  selectedValue={selectedTutor ? tutors?.find(t => t._id === selectedTutor)?.username : ''}
+                  onValueChange={(username) => {
+                    const tutor = tutors?.find(t => t.username === username);
+                    setSelectedTutor(tutor?._id);
+                  }}
+                  placeholder="Select a tutor..."
+                />
               </View>
-            );
-          })}
+            </View>
+          )}
 
-          <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
-            <Text style={styles.submitButtonText}>Submit</Text>
+          {template.scaleDescription && (
+            <View style={styles.scaleDescriptionContainer}>
+              <Text style={styles.scaleDescriptionTitle}>Evaluation Scale Guide</Text>
+              <ScrollView 
+                style={styles.scaleDescriptionScroll}
+                nestedScrollEnabled={true}
+              >
+                <Text style={styles.scaleDescription}>{template.scaleDescription}</Text>
+              </ScrollView>
+            </View>
+          )}
+
+          {template.fieldTemplates?.map((field, index) => (
+            <View key={index} style={styles.fieldContainer}>
+              <Text style={styles.label}>
+                {field.name}
+                {field.required && <Text style={styles.required}> *</Text>}
+              </Text>
+              {field.details && (
+                <Text style={styles.details}>{field.details}</Text>
+              )}
+              {renderField(field)}
+            </View>
+          ))}
+
+          <TouchableOpacity 
+            style={[
+              styles.submitButton,
+              (!selectedTutor && isResident(user?.role)) && styles.submitButtonDisabled
+            ]}
+            onPress={handleSubmit}
+            disabled={!selectedTutor && isResident(user?.role)}
+          >
+            <Text style={styles.submitButtonText}>Submit Form</Text>
           </TouchableOpacity>
         </>
       )}
@@ -277,150 +384,201 @@ export default function FormScreen({ route, navigation, role }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
+    backgroundColor: '#f5f5f5',
+  },
+  headerContainer: {
+    padding: 16,
     backgroundColor: '#fff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#e0e0e0',
+    marginBottom: 10,
   },
   title: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: 'bold',
+    color: '#000',
+    marginBottom: 16,
+  },
+  scaleDescriptionContainer: {
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    margin: 16,
+    marginTop: 8,
+    marginBottom: 16,
+    borderLeftWidth: 4,
+    borderLeftColor: '#000',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+    maxHeight: 200,
+  },
+  scaleDescriptionTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#000',
+    padding: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e0e0e0',
+    backgroundColor: '#f8f8f8',
+  },
+  scaleDescriptionScroll: {
+    padding: 12,
+    maxHeight: 150,
+  },
+  scaleDescription: {
+    fontSize: 14,
+    color: '#333',
+    lineHeight: 20,
+  },
+  tutorContainer: {
+    backgroundColor: '#fff',
+    padding: 16,
+    borderRadius: 8,
     marginBottom: 20,
-    textAlign: 'center',
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+  },
+  pickerWrapper: {
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+    borderRadius: 8,
+    backgroundColor: '#fff',
+    marginTop: 8,
+    overflow: 'hidden',
+  },
+  picker: {
+    height: 50,
+    width: '100%',
+  },
+  pickerPlaceholder: {
+    color: '#999',
+  },
+  pickerOption: {
+    color: '#000',
+  },
+  formFieldsContainer: {
+    padding: 16,
   },
   fieldContainer: {
-    marginBottom: 20,
+    backgroundColor: '#fff',
+    padding: 16,
+    borderRadius: 8,
+    marginBottom: 16,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
   },
   label: {
     fontSize: 16,
+    fontWeight: '600',
+    color: '#000',
     marginBottom: 8,
-    fontWeight: '500',
   },
   required: {
-    color: 'red',
+    color: '#ff0000',
+  },
+  details: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 12,
+    fontStyle: 'italic',
   },
   input: {
     borderWidth: 1,
-    borderColor: '#ddd',
-    padding: 10,
+    borderColor: '#bdc3c7',
     borderRadius: 5,
+    padding: 10,
     fontSize: 16,
+    backgroundColor: '#fff',
   },
-  dateButton: {
+  textareaInput: {
+    height: 100,
+    textAlignVertical: 'top',
+  },
+  pickerContainer: {
     borderWidth: 1,
-    borderColor: '#ddd',
-    padding: 15,
+    borderColor: '#bdc3c7',
     borderRadius: 5,
     backgroundColor: '#fff',
   },
-  dateButtonContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  dateButtonText: {
-    fontSize: 16,
-    color: '#000',
-  },
   scaleContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 5,
+    justifyContent: 'space-around',
+    paddingVertical: 10,
+    gap: 10,
   },
   scaleButton: {
     padding: 10,
     borderWidth: 1,
-    borderColor: '#000',
+    borderColor: '#e0e0e0',
     borderRadius: 5,
-    minWidth: 50,
+    backgroundColor: '#fff',
+    minWidth: 40,
     alignItems: 'center',
   },
   scaleButtonSelected: {
     backgroundColor: '#000',
   },
   scaleButtonText: {
-    fontSize: 16,
     color: '#000',
   },
   scaleButtonTextSelected: {
     color: '#fff',
   },
+  dateButton: {
+    padding: 10,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+    borderRadius: 5,
+    backgroundColor: '#fff',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  dateButtonText: {
+    color: '#000',
+    fontSize: 16,
+  },
   submitButton: {
     backgroundColor: '#000',
-    padding: 15,
-    borderRadius: 5,
+    padding: 16,
+    borderRadius: 8,
+    margin: 16,
     alignItems: 'center',
-    marginTop: 20,
-    marginBottom: 40,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
   },
   submitButtonText: {
     color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  details: {
-    fontSize: 14,
-    color: '#666',
-    marginBottom: 10,
-    fontStyle: 'normal',
-    lineHeight: 20,
-  },
-  pickerContainer: {
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 5,
-    backgroundColor: '#fff',
-    marginTop: 5,
-  },
-  picker: {
-    height: 50,
-  },
-  textareaInput: {
-    height: 100,
-    paddingTop: 10,
-  },
-  yesNoContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginTop: 10,
-  },
-  yesNoButton: {
-    flex: 1,
-    padding: 15,
-    margin: 5,
-    borderWidth: 1,
-    borderColor: '#000',
-    borderRadius: 5,
-    alignItems: 'center',
-  },
-  yesNoButtonSelected: {
-    backgroundColor: '#000',
-  },
-  yesNoButtonText: {
-    fontSize: 16,
-    color: '#000',
-    fontWeight: '500',
-  },
-  yesNoButtonTextSelected: {
-    color: '#fff',
+    fontSize: 18,
+    fontWeight: '600',
   },
   scaleButtonDisabled: {
+    padding: 10,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+    borderRadius: 5,
     backgroundColor: '#f5f5f5',
-    borderColor: '#ddd',
-    opacity: 0.7,
+    minWidth: 40,
+    alignItems: 'center',
   },
   scaleButtonTextDisabled: {
-    color: '#999',
-  },
-  yesNoButtonDisabled: {
-    backgroundColor: '#f5f5f5',
-    borderColor: '#ddd',
-    opacity: 0.7,
-  },
-  yesNoButtonTextDisabled: {
-    color: '#999',
-  },
-  inputDisabled: {
-    backgroundColor: '#f5f5f5',
-    color: '#999',
+    color: '#666',
+    fontSize: 16,
   },
   loadingContainer: {
     flex: 1,
@@ -431,46 +589,42 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
   },
   retryButton: {
-    marginTop: 20,
-    padding: 10,
     backgroundColor: '#000',
-    borderRadius: 5,
+    padding: 16,
+    borderRadius: 8,
+    margin: 16,
+    alignItems: 'center',
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
   },
   retryButtonText: {
     color: '#fff',
-    fontSize: 16,
+    fontSize: 18,
+    fontWeight: '600',
   },
-  scaleDescriptionContainer: {
+  errorText: {
+    color: '#ff0000',
+    marginTop: 8,
+  },
+  submitButtonDisabled: {
+    opacity: 0.5,
+  },
+  inputDisabled: {
     backgroundColor: '#f5f5f5',
-    borderRadius: 5,
-    marginBottom: 20,
-    borderLeftWidth: 4,
-    borderLeftColor: '#000',
+    color: '#999',
+    opacity: 0.7,
   },
-  scaleDescriptionTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#000',
-    padding: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ddd',
+  scaleButtonDisabled: {
+    backgroundColor: '#f5f5f5',
+    borderColor: '#ddd',
+    opacity: 0.7,
   },
-  scaleDescriptionScroll: {
-    maxHeight: 150, // Adjust this value to control the height of the scrollable area
-    padding: 15,
+  scaleButtonTextDisabled: {
+    color: '#999',
   },
-  scaleDescription: {
-    fontSize: 14,
-    color: '#333',
-    lineHeight: 20,
-  },
-  textareaInput: {
-    height: 100,
-    paddingTop: 10,
-  },
-});// use querry to get tutotr list 
-// API user will call the tutro list users/tutotlist
-// drop down feil to chose the tutrs list to send tutor id with the form submission
+});               

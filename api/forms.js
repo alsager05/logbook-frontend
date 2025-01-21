@@ -1,53 +1,47 @@
 import api from './axios';
 
 export const formsService = {
-
   getAllForms: async () => {
     try {
       const response = await api.get('/formTemplates');
-      console.log('getAllForms response:', response);
-      return response;
+      const formTemplates = response.data || response;
+      return Array.isArray(formTemplates) ? formTemplates : [];
     } catch (error) {
-      console.error('getAllForms error:', error);
+      console.error('Error fetching forms:', error);
       throw error;
     }
   },
 
-  getPendingForms: async () => {
+  getFormById: async (id) => {
     try {
-      const response = await api.get('/forms/pending');
-      return response;
+      const response = await api.get(`/formTemplates/${id}`);
+      
+      const template = response.data || response;
+      
+      if (!template) {
+        throw new Error('No template data received');
+      }
+
+      // Ensure fieldTemplates is always an array
+      if (!template.fieldTemplates) {
+        template.fieldTemplates = [];
+      }
+
+      
+
+      return template;
     } catch (error) {
+      console.error('Error fetching form by id:', error);
       throw error;
     }
   },
 
-  acceptForm: async (formId) => {
+  getTutorPendingForms: async (tutorId) => {
     try {
-      const response = await api.post(`/forms/${formId}/accept`);
-      return response;
+      const response = await api.get(`/formSubmitions?tutor=${tutorId}&status=pending`);
+      return response.data;
     } catch (error) {
-      throw error;
-    }
-  },
-
-  rejectForm: async (formId) => {
-    try {
-      const response = await api.post(`/forms/${formId}/reject`);
-      return response;
-    } catch (error) {
-      throw error;
-    }
-  },
-
-  getFormById: async (formId) => {
-    try {
-      console.log('Getting form with ID:', formId);
-      const response = await api.get(`/formTemplates/${formId}`);
-      // console.log('getFormById response:', response);
-      return response;
-    } catch (error) {
-      console.error('getFormById error:', error);
+      console.error('Error fetching tutor pending forms:', error);
       throw error;
     }
   }
