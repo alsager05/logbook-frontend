@@ -62,7 +62,7 @@ export default function AnnouncementScreen({ navigation }) {
     queryKey: ["announcementDetails"],
     queryFn: getAllAnnouncements,
   });
-  console.log("data", data);
+  console.log("data is this one", data);
   const filteredAnnouncements = data?.filter((announcement) => {
     const announcementDate = new Date(announcement.date);
     const announcementYear = announcementDate.getFullYear().toString();
@@ -166,8 +166,8 @@ export default function AnnouncementScreen({ navigation }) {
       </View>
 
       <ScrollView style={styles.scrollView}>
-        {data?.map((announcement) => (
-          <View key={announcement.id} style={styles.announcementCard}>
+        {data?.map((announcement,index  ) => (
+          <View key={index} style={styles.announcementCard}>
             <Text style={styles.title}>{announcement.title}</Text>
 
             <TouchableOpacity

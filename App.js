@@ -33,13 +33,11 @@ function AppContent() {
   const {mutate:loginMutation} = useMutation({
     mutationFn: (data) => authService.login(data),
     onSuccess: (data) => {
-      console.log('Login successful:', data);
       if (data.requirePasswordChange) {
         setRequirePasswordChange(true);
         setUserId(data.userId);
       } else {
         const userRole = data.user?.role[0] || data.role[0];
-        console.log('Setting role to:', userRole);
         setRole(userRole.toUpperCase());
         setIsLoggedIn(true);
       }
@@ -79,10 +77,8 @@ function AppContent() {
 
   const checkToken = async () => {
     const token = await authService.checkToken();
-    console.log("dd",token)
     if(token){
       const user = await authService.getUser();
-      console.log("user form App",user)
       setIsLoggedIn(token);
       setRole(user.role[0].toUpperCase());
     }
@@ -106,7 +102,6 @@ function AppContent() {
   }
 
 
-  console.log(isLoggedIn)
   if (!isLoggedIn) {
     return <LoginScreen onLogin={handleLogin} />;
   }

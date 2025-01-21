@@ -12,12 +12,10 @@ function ResidentHomeContent({ navigation }) {
     queryKey: ['formTemplates'],
     queryFn: async () => {
       const response = await formsService.getAllForms();
-      console.log('Form templates response:', response);
       return Array.isArray(response) ? response : [];
     }
   });
 
-  console.log('FormTemplates in component:', formTemplates);
 
   if (isLoading) {
     return (
@@ -66,7 +64,6 @@ function ResidentHomeContent({ navigation }) {
               key={template._id}
               style={styles.categoryButton}
               onPress={() => {
-                console.log('Navigating with template:', template);
                 navigation.navigate('Form', {
                   formId: template._id,
                   formName: template.formName,
@@ -97,13 +94,13 @@ function ResidentHomeContent({ navigation }) {
 
 export default function ResidentHomeScreen() {
   return (
-    <HomeStack.Navigator screenOptions={{ headerShown: true }}>
+    <HomeStack.Navigator screenOptions={{ headerShown: true ,headerBackTitle: 'Back' }}>
       <HomeStack.Screen 
         name="ResidentHome" 
         component={ResidentHomeContent}
         options={{ 
-          headerTitle: 'Home',
-          headerShown: false 
+          headerTitle: 'Resident Dashboard',
+          // headerShown: false 
         }}
       />
       <HomeStack.Screen 
@@ -121,34 +118,34 @@ export default function ResidentHomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f7fa',
+    backgroundColor: '#F5F7FA',  // Light grayish blue background
   },
   header: {
     padding: 20,
-    backgroundColor: '#fff',
+    backgroundColor: '#FFFFFF',  // Clean white
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    borderBottomColor: '#E4E9F0',  // Soft gray border
     marginBottom: 10,
   },
   welcomeText: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#1a1a1a',
+    color: '#2D3748',  // Deep blue-gray
     marginBottom: 5,
   },
   subtitleText: {
     fontSize: 16,
-    color: '#666',
+    color: '#718096',  // Muted blue-gray
   },
   buttonContainer: {
     padding: 15,
     gap: 15,
   },
   categoryButton: {
-    backgroundColor: '#fff',
+    backgroundColor: '#FFFFFF',  // Clean white
     borderRadius: 12,
     elevation: 3,
-    shadowColor: '#000',
+    shadowColor: '#718096',
     shadowOffset: {
       width: 0,
       height: 2,
@@ -165,18 +162,18 @@ const styles = StyleSheet.create({
   categoryTitle: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#1a1a1a',
+    color: '#2D3748',  // Deep blue-gray
     marginBottom: 4,
   },
   categorySubtitle: {
     fontSize: 16,
-    color: '#666',
+    color: '#718096',  // Muted blue-gray
   },
   messageText: {
     fontSize: 16,
     textAlign: 'center',
     marginTop: 50,
-    color: '#666',
+    color: '#718096',  // Muted blue-gray
     padding: 20,
   }
 }); 

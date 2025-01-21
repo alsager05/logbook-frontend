@@ -27,7 +27,6 @@ export default function TutorHomeScreen({ navigation }) {
       </View>
     );
   }
-console.log("data all formsss",data)
   // Ensure data is an array
   const pendingForms = Array.isArray(data) ? data : [];
 

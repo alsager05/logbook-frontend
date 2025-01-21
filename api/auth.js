@@ -5,9 +5,7 @@ import { jwtDecode } from "jwt-decode";
 export const authService = {
   login: async (credentials) => {
     try {
-      console.log('Login request:', credentials); // Debug log
       const response = await api.post('/users/login', credentials);
-      console.log('Login response:', response.data); // Debug log
       
       if (response.data?.token) {
         await AsyncStorage.setItem('token', response.data.token);
@@ -23,7 +21,6 @@ export const authService = {
   logout: async () => {
     try {
       await AsyncStorage.removeItem('token');
-        console.log("token removed")
     } catch (error) {
       console.error('Logout error:', error);
       // Still remove the token even if the logout request fails
@@ -33,7 +30,6 @@ export const authService = {
 
   checkToken: async () => {
     const token = await AsyncStorage.getItem('token');
-    console.log("token",token)
    if(token){
     return true;
    }
@@ -42,7 +38,6 @@ export const authService = {
 
   changePassword: async (data) => {
     try {
-      console.log('Changing password for user:', data);
       // const token = await AsyncStorage.getItem('token');
       // console.log('Token:', token);
       // const user = jwtDecode(token);
@@ -52,7 +47,6 @@ export const authService = {
        
       );
       
-      console.log('Change password response:', response);
 
       if (response.token) {
         await AsyncStorage.setItem('token', response.token);
@@ -71,9 +65,7 @@ export const authService = {
 
   getTutorList: async () => {
     try {
-      console.log('Fetching tutors...');
       const response = await api.get('/users/tutor-list');
-      console.log('Tutor response:', response.data);
       return response.data;
     } catch (error) {
       console.error('Error fetching tutors:', error);
@@ -90,12 +82,11 @@ export const authService = {
       }
 
       const decodedUser = jwtDecode(token);
-      console.log('Decoded user token:', decodedUser);
       
       return {
         id: decodedUser.id,
         username: decodedUser.username,
-        role: decodedUser.role?.[0] || decodedUser.role || 'UNKNOWN'
+        role: decodedUser.role||  'UNKNOWN'
       };
     } catch (error) {
       console.error('Error in getUser:', error);

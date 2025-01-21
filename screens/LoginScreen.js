@@ -26,7 +26,6 @@ export default function LoginScreen({ onLogin }) {
 
     // Convert role to uppercase to match backend
     const normalizedRole = roles.toUpperCase();
-    console.log('Submitting login with role:', normalizedRole); // Debug log
     
     onLogin(username, password, normalizedRole);
   };
@@ -42,57 +41,61 @@ export default function LoginScreen({ onLogin }) {
           />
         </View>
 
-        <View style={styles.formContainer}>
-          <Text style={styles.title}>Login</Text>
-          
-          <TextInput
-            style={styles.input}
-            placeholder="Username"
-            value={username}
-            onChangeText={setUsername}
-            autoCapitalize="none"
-          />
+        <View style={styles.formWrapper}>
+          <View style={styles.formContainer}>
+            <Text style={styles.title}>Login</Text>
+            
+            <TextInput
+              style={styles.input}
+              placeholder="Username"
+              value={username}
+              onChangeText={setUsername}
+              autoCapitalize="none"
+            />
 
-          <TextInput
-            style={styles.input}
-            placeholder="Password"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-          />
+            <TextInput
+              style={styles.input}
+              placeholder="Password"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry
+            />
 
-          <View style={styles.roleContainer}>
+            <View style={styles.roleContainer}>
+              <TouchableOpacity 
+                style={[styles.roleButton, roles === 'tutor' && styles.roleButtonActive]}
+                onPress={() => setRoles('tutor')}
+              >
+                <Text style={[styles.roleButtonText, roles === 'tutor' && styles.roleButtonTextActive]}>
+                  tutor
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={[styles.roleButton, roles === 'RESIDENT' && styles.roleButtonActive]}
+                onPress={() => setRoles('RESIDENT')}
+              >
+                <Text style={[styles.roleButtonText, roles === 'RESIDENT' && styles.roleButtonTextActive]}>
+                  Resident
+                </Text>
+              </TouchableOpacity>
+            </View>
+
             <TouchableOpacity 
-              style={[styles.roleButton, roles === 'tutor' && styles.roleButtonActive]}
-              onPress={() => setRoles('tutor')}
+              style={[
+                styles.loginButton, 
+                (!username || !password || !roles) ? styles.loginButtonDisabled : styles.loginButtonEnabled,
+                isLoggingIn && styles.loginButtonLoading
+              ]}
+              onPress={handleLogin}
+              disabled={!username || !password || !roles || isLoggingIn}
             >
-              <Text style={[styles.roleButtonText, roles === 'tutor' && styles.roleButtonTextActive]}>
-                tutor
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity 
-              style={[styles.roleButton, roles === 'RESIDENT' && styles.roleButtonActive]}
-              onPress={() => setRoles('RESIDENT')}
-            >
-              <Text style={[styles.roleButtonText, roles === 'RESIDENT' && styles.roleButtonTextActive]}>
-                Resident
-              </Text>
+              <View style={styles.loginButtonContent}>
+                <Text style={styles.loginButtonText}>
+                  {isLoggingIn ? 'Logging in...' : 'Login'}
+                </Text>
+              </View>
             </TouchableOpacity>
           </View>
-
-          <TouchableOpacity 
-            style={[
-              styles.button, 
-              (!username || !password || !roles) && styles.buttonDisabled,
-              isLoggingIn && styles.buttonLoading
-            ]}
-            onPress={handleLogin}
-            disabled={!username || !password || !roles || isLoggingIn}
-          >
-            <Text style={styles.buttonText}>
-              {isLoggingIn ? 'Logging in...' : 'Login'}
-            </Text>
-          </TouchableOpacity>
         </View>
       </View>
     </SafeAreaView>
@@ -102,85 +105,109 @@ export default function LoginScreen({ onLogin }) {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#000',
   },
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#000',
   },
   logoContainer: {
-    flex: 1,
-    alignItems: 'center',
+    height: '30%',
     justifyContent: 'center',
-    paddingTop: 50,
+    alignItems: 'center',
+    backgroundColor: '#000',
   },
   logo: {
-    width: 200,
-    height: 200,
+    width: '100%',
+    height: '75%',
+  },
+  formWrapper: {
+    flex: 1,
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 70,
   },
   formContainer: {
-    flex: 2,
-    paddingHorizontal: 20,
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 70,
+    paddingHorizontal: 25,
+    paddingTop: 20,
     paddingBottom: 40,
   },
   title: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: 'bold',
     marginBottom: 20,
+    color: '#000',
     textAlign: 'center',
+  },
+  label: {
+    fontSize: 18,
+    fontWeight: '500',
+    marginBottom: 8,
     color: '#000',
   },
   input: {
     width: '100%',
-    height: 40,
+    height: 50,
     borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 5,
-    paddingHorizontal: 10,
-    marginBottom: 15,
+    borderColor: '#E8E8E8',
+    borderRadius: 25,
+    paddingHorizontal: 20,
+    marginBottom: 20,
+    fontSize: 16,
     backgroundColor: '#fff',
   },
   roleContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    width: '100%',
-    marginBottom: 15,
+    marginTop: 15,
+    marginBottom: 25,
   },
   roleButton: {
-    flex: 1,
-    padding: 10,
-    borderWidth: 1,
-    borderColor: '#000',
-    borderRadius: 5,
-    marginHorizontal: 5,
+    width: '48%',
+    height: 45,
+    borderRadius: 25,
+    backgroundColor: '#F5F5F5',
+    justifyContent: 'center',
     alignItems: 'center',
   },
   roleButtonActive: {
     backgroundColor: '#000',
   },
   roleButtonText: {
-    color: '#000',
     fontSize: 16,
+    color: '#000',
+    fontWeight: '500',
   },
   roleButtonTextActive: {
     color: '#fff',
   },
-  button: {
+  loginButton: {
+    height: 45,
+    borderRadius: 25,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 20,
+    marginBottom: 20,
+  },
+  loginButtonEnabled: {
     backgroundColor: '#000',
-    padding: 15,
-    borderRadius: 5,
+  },
+  loginButtonDisabled: {
+    backgroundColor: '#666',
+  },
+  loginButtonLoading: {
+    backgroundColor: '#666',
+  },
+  loginButtonContent: {
     width: '100%',
     alignItems: 'center',
+    justifyContent: 'center',
   },
-  buttonText: {
+  loginButtonText: {
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
-  },
-  buttonDisabled: {
-    backgroundColor: Colors.inactive,
-  },
-  buttonLoading: {
-    backgroundColor: Colors.inactive,
+    textAlign: 'center',
   },
 });

@@ -4,14 +4,9 @@ export const formSubmissionsService = {
   submitForm: async (data) => {
     try {
       const response = await api.post('/formSubmitions', data);
-      console.log('Form submission response:', response.data);
       return response.data;
     } catch (error) {
-      console.error('Form submission error:', {
-        message: error.message,
-        response: error.response?.data,
-        status: error.response?.status
-      });
+     
       throw new Error(error.response?.data?.message || 'Failed to submit form');
     }
   },
@@ -22,7 +17,6 @@ export const formSubmissionsService = {
       // console.log(`Fetching submissions for ${role} with ID:`, userId);
       const response = await api.get(`/formSubmitions`);
       // const response = await api.get(`/formSubmitions/${userId}?role=${role}`);
-      console.log('Submissions responsess:', response.data);
       return response.data;
     } catch (error) {
       console.error('Error fetching submissions:', error);

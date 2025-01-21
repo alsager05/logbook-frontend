@@ -7,6 +7,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { formsService } from '../api/forms';
 import { authService } from '../api/auth';
 import { formSubmissionsService } from '../api/formSubmissions';
+import CustomDropdown from '../components/CustomDropdown';
 
 export default function FormScreen({ route, navigation }) {
   const queryClient = useQueryClient();
@@ -27,7 +28,6 @@ export default function FormScreen({ route, navigation }) {
       try {
         setIsLoading(true);
         const userData = await authService.getUser();
-        console.log('Raw user data:', userData);
         
         if (!userData) {
           Alert.alert(
@@ -51,7 +51,6 @@ export default function FormScreen({ route, navigation }) {
           role: normalizedRole
         };
         
-        console.log('Processed user data:', userWithRole);
         setUser(userWithRole);
       } catch (error) {
         console.error('Error getting user:', error);
@@ -64,19 +63,18 @@ export default function FormScreen({ route, navigation }) {
   }, [navigation]);
 
   // Update the role check function
-  const isResident = useCallback((userRole) => {
+  const isResident = useCallback((userRole,fieldResponse) => {
     if (!userRole) return false;
     const role = userRole.toString().toUpperCase();
-    return role === 'RESIDENT';
+    const response = fieldResponse?.toString().toUpperCase();
+    return role !== response;
   }, []);
 
   // Get tutors list
   const { data: tutors, isLoading: isLoadingTutors, error: tutorError } = useQuery({
     queryKey: ['tutors'],
     queryFn: async () => {
-      console.log('Fetching tutors for role:', user?.role);
       const response = await authService.getTutorList();
-      console.log('Tutor query response:', response);
       return response;
     },
     enabled: !!user && isResident(user.role)
@@ -86,14 +84,11 @@ export default function FormScreen({ route, navigation }) {
   const { data: template, isLoading: isLoadingTemplate, error: templateError } = useQuery({
     queryKey: ['formTemplate', formId],
     queryFn: async () => {
-      console.log('Fetching template for id:', formId);
       const response = await formsService.getFormById(formId);
-      console.log('Template response:', response);
       return response;
     },
     enabled: !!formId
   });
-console.log("user is this one",user)
   // Handle form submission
   const handleSubmit = async () => {
     try {
@@ -139,20 +134,15 @@ console.log("user is this one",user)
           Select Tutor <Text style={styles.required}>*</Text>
         </Text>
         <View style={styles.pickerContainer}>
-          <Picker
-            selectedValue={selectedTutor}
-            onValueChange={setSelectedTutor}
-            style={styles.picker}
-          >
-            <Picker.Item label="Select a tutor..." value="" />
-            {tutors?.map(tutor => (
-              <Picker.Item
-                key={tutor._id}
-                label={tutor.username}
-                value={tutor._id}
-              />
-            ))}
-          </Picker>
+          <CustomDropdown
+            options={tutors?.map(tutor => tutor.username) || []}
+            selectedValue={selectedTutor ? tutors?.find(t => t._id === selectedTutor)?.username : ''}
+            onValueChange={(username) => {
+              const tutor = tutors?.find(t => t.username === username);
+              setSelectedTutor(tutor?._id);
+            }}
+            placeholder="Select a tutor..."
+          />
         </View>
       </View>
     );
@@ -171,7 +161,6 @@ console.log("user is this one",user)
 
   // Add this function to render individual fields
   const handleInputChange = (fieldName, value) => {
-    console.log('Handling input change:', { fieldName, value });
     setFormData(prev => ({
       ...prev,
       [fieldName]: value
@@ -188,8 +177,8 @@ console.log("user is this one",user)
 
   // Update the renderField function to use these handlers
   const renderField = (field) => {
-    const isReadOnly = isResident(user?.role) && field.section === "2";
-    console.log('Rendering field:', { name: field.name, section: field.section, isReadOnly });
+    const isReadOnly = isResident(user?.role,field.response);
+   
 
     switch (field.type?.toLowerCase()) {
       case 'text':
@@ -205,17 +194,13 @@ console.log("user is this one",user)
       case 'select':
         return (
           <View style={[styles.selectContainer, isReadOnly && styles.inputDisabled]}>
-            <Picker
-              enabled={!isReadOnly}
+            <CustomDropdown
+              options={field.options || []}
               selectedValue={formData[field.name] || ''}
               onValueChange={(value) => !isReadOnly && handleInputChange(field.name, value)}
-              style={[styles.picker, isReadOnly && styles.pickerDisabled]}
-            >
-              <Picker.Item label="Select an option" value="" />
-              {field.options?.map((option) => (
-                <Picker.Item key={option} label={option} value={option} />
-              ))}
-            </Picker>
+              placeholder={`Select ${field.name}`}
+              disabled={isReadOnly}
+            />
           </View>
         );
 
@@ -342,20 +327,15 @@ console.log("user is this one",user)
                 Select Tutor <Text style={styles.required}>*</Text>
               </Text>
               <View style={styles.pickerContainer}>
-                <Picker
-                  selectedValue={selectedTutor}
-                  onValueChange={(value) => setSelectedTutor(value)}
-                  style={styles.picker}
-                >
-                  <Picker.Item label="Select a tutor..." value="" />
-                  {tutors?.map((tutor) => (
-                    <Picker.Item
-                      key={tutor._id}
-                      label={tutor.username}
-                      value={tutor._id}
-                    />
-                  ))}
-                </Picker>
+                <CustomDropdown
+                  options={tutors?.map(tutor => tutor.username) || []}
+                  selectedValue={selectedTutor ? tutors?.find(t => t._id === selectedTutor)?.username : ''}
+                  onValueChange={(username) => {
+                    const tutor = tutors?.find(t => t.username === username);
+                    setSelectedTutor(tutor?._id);
+                  }}
+                  placeholder="Select a tutor..."
+                />
               </View>
             </View>
           )}

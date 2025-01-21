@@ -5,6 +5,7 @@ import { Picker } from '@react-native-picker/picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { formsService } from '../api/forms';
 import { formSubmissionsService } from '../api/formSubmissions';
+import CustomDropdown from '../components/CustomDropdown';
 
 export default function FormReviewScreen({ route, navigation }) {
   const { formId, submissionId, formName, readOnly } = route.params;
@@ -33,15 +34,12 @@ export default function FormReviewScreen({ route, navigation }) {
         // Find matching field template and map value to field name
         const fieldTemplate = template?.fieldTemplates.find(f => f._id === record.fieldTemplate);
         if (fieldTemplate) {
-          console.log("fieldTemplate is this ",fieldTemplate.name, record.value)
           recordsMap[fieldTemplate.name] = record.value;
         }
       });
-      console.log("recordsMap is this ",recordsMap)
       setFieldRecords(recordsMap);
     }
   }, [submission, template]);
-console.log("fieldRecords is this ",fieldRecords)
   // Submit new values mutation
   const submitMutation = useMutation({
     mutationFn: async (data) => {
@@ -75,7 +73,6 @@ console.log("fieldRecords is this ",fieldRecords)
     submitMutation.mutate({ fieldRecords: updatedFields });
   };
 
-  console.log("fieldRecords",fieldRecords)
 
   const renderField = (field) => {
     const existingValue = fieldRecords[field.name];
@@ -134,15 +131,13 @@ console.log("fieldRecords is this ",fieldRecords)
           <View style={styles.fieldContainer}>
             {renderLabel()}
             <View style={styles.pickerContainer}>
-              <Picker
+              <CustomDropdown
+                options={field.options || []}
                 selectedValue={currentValue}
                 onValueChange={(value) => setNewValues({...newValues, [field.name]: value})}
-              >
-                <Picker.Item label="Select an option" value="" />
-                {field.options.map((option) => (
-                  <Picker.Item key={option} label={option} value={option} />
-                ))}
-              </Picker>
+                placeholder={`Select ${field.name}`}
+                disabled={false}
+              />
             </View>
           </View>
         );
