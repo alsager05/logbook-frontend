@@ -1,21 +1,33 @@
 import React from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity, SafeAreaView } from 'react-native';
+import { View, Text, StyleSheet, Image, TouchableOpacity, SafeAreaView, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useQuery } from '@tanstack/react-query';
+import { userService } from '../api/users';
 
 const ResidentProfileScreen = () => {
   const insets = useSafeAreaInsets();
 
-  // This would typically come from your user data/state
-  const residentData = {
-    name: "Dr. Bashayer Saeed",
-    id: "RES2024-001",
-    level: "PGY-2",
-    email: "bsaeed@hospital.com",
-    phone: "123-4567",
-    startDate: "July 2022",
-    expectedCompletion: "June 2025"
-  };
+  const { data: profile, isLoading, error } = useQuery({
+    queryKey: ['residentProfile'],
+    queryFn: userService.getUserProfile,
+  });
+
+  if (isLoading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#000" />
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={styles.errorContainer}>
+        <Text style={styles.errorText}>Error loading profile: {error.message}</Text>
+      </View>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -23,43 +35,43 @@ const ResidentProfileScreen = () => {
         <View style={styles.header}>
           <View style={styles.profileImageContainer}>
             <Image
-              source={require('../assets/icon.png')} // Replace with actual profile picture
+              source={profile?.imageUrl ? { uri: profile.imageUrl } : require('../assets/icon.png')}
               style={styles.profileImage}
             />
             <TouchableOpacity style={styles.editImageButton}>
               <Ionicons name="camera-outline" size={20} color="#000" />
             </TouchableOpacity>
           </View>
-          <Text style={styles.name}>{residentData.name}</Text>
-          <Text style={styles.level}>{residentData.level} Resident</Text>
+          <Text style={styles.name}>{profile?.name}</Text>
+          <Text style={styles.level}>{profile?.level} Resident</Text>
         </View>
 
         <View style={styles.infoContainer}>
           <View style={styles.infoRow}>
             <View style={styles.infoItem}>
               <Text style={styles.label}>Resident ID</Text>
-              <Text style={styles.value}>{residentData.id}</Text>
+              <Text style={styles.value}>{profile?.residentId}</Text>
             </View>
           </View>
 
           <View style={styles.infoRow}>
             <View style={styles.infoItem}>
               <Text style={styles.label}>Training Level</Text>
-              <Text style={styles.value}>{residentData.level}</Text>
+              <Text style={styles.value}>{profile?.level}</Text>
             </View>
           </View>
 
           <View style={styles.infoRow}>
             <View style={styles.infoItem}>
               <Text style={styles.label}>Start Date</Text>
-              <Text style={styles.value}>{residentData.startDate}</Text>
+              <Text style={styles.value}>{profile?.startDate}</Text>
             </View>
           </View>
 
           <View style={styles.infoRow}>
             <View style={styles.infoItem}>
               <Text style={styles.label}>Expected Completion</Text>
-              <Text style={styles.value}>{residentData.expectedCompletion}</Text>
+              <Text style={styles.value}>{profile?.expectedCompletion}</Text>
             </View>
           </View>
 
@@ -67,11 +79,11 @@ const ResidentProfileScreen = () => {
             <Text style={styles.sectionTitle}>Contact Information</Text>
             <View style={styles.contactItem}>
               <Ionicons name="mail-outline" size={20} color="#000" />
-              <Text style={styles.contactText}>{residentData.email}</Text>
+              <Text style={styles.contactText}>{profile?.email}</Text>
             </View>
             <View style={styles.contactItem}>
               <Ionicons name="call-outline" size={20} color="#000" />
-              <Text style={styles.contactText}>{residentData.phone}</Text>
+              <Text style={styles.contactText}>{profile?.phone}</Text>
             </View>
           </View>
         </View>
@@ -169,6 +181,22 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#000000',
     marginLeft: 10,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  errorText: {
+    color: 'red',
+    textAlign: 'center',
+    fontSize: 16,
   },
 });
 

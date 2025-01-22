@@ -4,7 +4,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 // Create axios instance with default config
 const api = axios.create({
   // Update this to your actual API endpoint
-  baseURL: 'http://192.168.2.202:8000', // Changed from 8081 to 8000 to match your backend
+  baseURL: 'https://hammerhead-app-z9szz.ondigitalocean.app/', // Changed from 8081 to 8000 to match your backend
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json'

@@ -12,8 +12,11 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useQuery } from "@tanstack/react-query";
 import { getAllAnnouncements } from "../api/announcement";
+import { useNavigation } from "@react-navigation/native";
+import pic from "../assets/annoucement2.jpg";
 
-export default function AnnouncementScreen({ navigation }) {
+export default function AnnouncementScreen() {
+  const navigation = useNavigation();
   const [selectedYear, setSelectedYear] = useState("2024");
   const [selectedMonth, setSelectedMonth] = useState("All");
   const [showYearPicker, setShowYearPicker] = useState(false);
@@ -34,28 +37,6 @@ export default function AnnouncementScreen({ navigation }) {
     "October",
     "November",
     "December",
-  ];
-
-  // Example announcements data - replace with your actual data
-  const announcements = [
-    {
-      id: 1,
-      title: "Important Update",
-      details:
-        "New guidelines for resident evaluations have been published. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
-      date: "2024-03-20",
-      fullDetails:
-        "This is the full detailed content of the announcement that will be shown in the details screen. It can contain much more information than the preview.",
-    },
-    {
-      id: 2,
-      title: "Upcoming Workshop",
-      details:
-        "Join us for a special workshop on advanced surgical techniques. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-      date: "2024-03-25",
-      fullDetails:
-        "Complete workshop information including schedule, location, and prerequisites will be shown here.",
-    },
   ];
 
   const { data, isFetching, isSuccess } = useQuery({
@@ -136,6 +117,10 @@ export default function AnnouncementScreen({ navigation }) {
     console.log("Searching for:", selectedYear, selectedMonth);
   };
 
+  const handleAnnouncementPress = (announcement) => {
+    navigation.navigate('AnnouncementDetails', { announcement });
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.filterSection}>
@@ -166,28 +151,27 @@ export default function AnnouncementScreen({ navigation }) {
       </View>
 
       <ScrollView style={styles.scrollView}>
-        {data?.map((announcement,index  ) => (
-          <View key={index} style={styles.announcementCard}>
-            <Text style={styles.title}>{announcement.title}</Text>
-
-            <TouchableOpacity
-              style={styles.imageContainer}
-              onPress={() =>
-                navigation.navigate("AnnouncementDetails", { announcement })
-              }
-            >
-              <Ionicons name="image-outline" size={50} color="#666" />
-              <Text style={styles.imagePlaceholderText}>
-                Tap to view details
+        {data?.map((announcement) => (
+          <TouchableOpacity
+            key={announcement.id}
+            style={styles.announcementCard}
+            onPress={() => handleAnnouncementPress(announcement)}
+          >
+            <Image 
+              source={pic}
+              style={styles.announcementImage}
+              resizeMode="cover"
+            />
+            <View style={styles.contentContainer}>
+              <Text style={styles.date}>{new Date(announcement.date).toLocaleDateString()}</Text>
+              <Text style={styles.title}>{announcement.title}</Text>
+              <Text style={styles.description} numberOfLines={2}>
+                {announcement.body}
               </Text>
-            </TouchableOpacity>
-
-            <Text style={styles.date}>
-              Posted on: {new Date(announcement.date).toLocaleDateString()}
-            </Text>
-          </View>
+            </View>
+          </TouchableOpacity>
         ))}
-        {filteredAnnouncements?.length === 0 && (
+        {data?.length === 0 && (
           <Text style={styles.noResults}>
             No announcements found for selected period
           </Text>
@@ -273,11 +257,10 @@ const styles = StyleSheet.create({
     padding: 15,
   },
   announcementCard: {
-    backgroundColor: "#f5f5f5",
-    borderRadius: 10,
-    padding: 15,
+    backgroundColor: "#fff",
+    borderRadius: 15,
     marginBottom: 20,
-    elevation: 2,
+    elevation: 3,
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
@@ -286,30 +269,30 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
   },
-  title: {
-    fontSize: 20,
-    fontWeight: "bold",
-    marginBottom: 10,
-    color: "#333",
-  },
-  imageContainer: {
-    width: windowWidth - 60,
+  announcementImage: {
+    width: 400,
     height: 200,
-    backgroundColor: "#e1e1e1",
-    borderRadius: 8,
-    marginBottom: 10,
-    justifyContent: "center",
-    alignItems: "center",
+    borderTopLeftRadius: 15,
+    borderTopRightRadius: 15,
   },
-  imagePlaceholderText: {
-    marginTop: 10,
-    color: "#666",
-    fontSize: 16,
+  contentContainer: {
+    padding: 15,
   },
   date: {
     fontSize: 14,
     color: "#666",
-    fontStyle: "italic",
+    marginBottom: 5,
+  },
+  title: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 8,
+    color: "#000",
+  },
+  description: {
+    fontSize: 16,
+    color: "#444",
+    lineHeight: 22,
   },
   noResults: {
     textAlign: "center",
@@ -334,3 +317,4 @@ const styles = StyleSheet.create({
     shadowRadius: 3.84,
   },
 });
+
