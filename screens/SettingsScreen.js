@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -7,92 +7,182 @@ import {
   Linking,
   ScrollView,
   SafeAreaView,
+  Image,
+  Switch,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { authService } from "../api/auth";
+import { createStackNavigator } from "@react-navigation/stack";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-export default function SettingsScreen({ handleLogout }) {
-  const socialLinks = [
-    {
-      id: 1,
-      name: "Instagram",
-      icon: "logo-instagram",
-      color: "#E1306C",
-      url: "https://www.instagram.com/kraog_q8/",
-    },
+const Stack = createStackNavigator();
 
-    {
-      id: 2,
-      name: "Website",
-      icon: "globe-outline",
-      color: "#007AFF",
-      url: "https://www.kims-page.org", // Replace with actual website
-    },
-    {
-      id: 3,
-      name: "Email",
-      icon: "mail-outline",
-      color: "#FF2D55",
-      url: "mailto:info@kbog.edu.kw", // Replace with actual email
-    },
-  ];
+function AboutUsScreen() {
+  return (
+    <ScrollView style={styles.container}>
+      <View style={styles.aboutContainer}>
+        <Image 
+          source={require('../assets/kbog-logo.jpg')} 
+          style={styles.logo}
+          resizeMode="contain"
+        />
+        <Text style={styles.aboutTitle}>Kuwait Board of Obstetrics & Gynecology</Text>
+        <Text style={styles.aboutText}>
+          The Kuwait Board of Obstetrics and Gynecology (KBOG) is a prestigious medical education 
+          program dedicated to training and certifying specialists in obstetrics and gynecology 
+          in Kuwait. Our mission is to provide high-quality medical education and training to 
+          ensure the best healthcare standards for women in Kuwait.
+        </Text>
+      </View>
+    </ScrollView>
+  );
+}
 
-  const handleSocialLink = (url) => {
-    Linking.canOpenURL(url).then((supported) => {
-      if (supported) {
-        Linking.openURL(url);
-      } else {
-        console.log("Don't know how to open URI: " + url);
-      }
-    });
+function PrivacyPolicyScreen() {
+  return (
+    <ScrollView style={styles.container}>
+      <View style={styles.policyContainer}>
+        <Text style={styles.policyTitle}>Privacy Policy</Text>
+        <Text style={styles.policyText}>
+          Your privacy is important to us. This privacy policy explains how we collect, 
+          use, and protect your personal information...
+          {/* Add your complete privacy policy text here */}
+        </Text>
+      </View>
+    </ScrollView>
+  );
+}
+
+function MainSettingsScreen({ navigation, handleLogout, roles }) {
+  const [isNotificationsEnabled, setIsNotificationsEnabled] = useState(false);
+
+  // Load notification settings when component mounts
+  React.useEffect(() => {
+    loadNotificationSettings();
+  }, []);
+
+  const loadNotificationSettings = async () => {
+    try {
+      const notificationSetting = await AsyncStorage.getItem('notificationsEnabled');
+      setIsNotificationsEnabled(notificationSetting === 'true');
+    } catch (error) {
+      console.error('Error loading notification settings:', error);
+    }
+  };
+
+  const toggleNotifications = async (value) => {
+    try {
+      await AsyncStorage.setItem('notificationsEnabled', value.toString());
+      setIsNotificationsEnabled(value);
+    } catch (error) {
+      console.error('Error saving notification settings:', error);
+    }
+  };
+
+  const handleSocialLink = (type) => {
+    let url;
+    switch(type) {
+      case 'instagram':
+        url = 'https://www.instagram.com/kraog_q8/';
+        break;
+      case 'website':
+        url = 'https://kims-pge.org';
+        break;
+      case 'email':
+        url = 'mailto:info@kbog.org';
+        break;
+    }
+    if (url) Linking.openURL(url);
   };
 
   return (
-    <SafeAreaView style={{ flex: 1 }}>
-      <ScrollView style={styles.container}>
+    <View style={styles.container}>
+      <View style={styles.contentWrapper}>
+        <View style={styles.logoContainer}>
+          <Image
+            source={require('../assets/kbog-logo.jpg')}
+            style={styles.logo}
+            resizeMode="contain"
+          />
+        </View>
+
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Contact & Social Media:</Text>
-          <View style={styles.socialContainer}>
-            {socialLinks.map((link) => (
-              <TouchableOpacity
-                key={link.id}
-                style={styles.socialButton}
-                onPress={() => handleSocialLink(link.url)}
-              >
-                <View
-                  style={[
-                    styles.iconContainer,
-                    { backgroundColor: link.color },
-                  ]}
-                >
-                  <Ionicons name={link.icon} size={24} color="#fff" />
-                </View>
-                <Text style={styles.socialText}>{link.name}</Text>
-              </TouchableOpacity>
-            ))}
+          <View style={styles.menuItem}>
+            <Ionicons name="notifications-outline" size={24} color="#000" />
+            <Text style={styles.menuText}>Notifications</Text>
+            <Switch
+              value={isNotificationsEnabled}
+              onValueChange={toggleNotifications}
+              trackColor={{ false: "#767577", true: "#000" }}
+              thumbColor={isNotificationsEnabled ? "#fff" : "#f4f3f4"}
+            />
+          </View>
+
+          <TouchableOpacity 
+            style={styles.menuItem}
+            onPress={() => navigation.navigate('AboutUs')}
+          >
+            <Ionicons name="information-circle-outline" size={24} color="#000" />
+            <Text style={styles.menuText}>About Us</Text>
+            <Ionicons name="chevron-forward" size={24} color="#666" />
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={styles.menuItem}
+            onPress={() => navigation.navigate('PrivacyPolicy')}
+          >
+            <Ionicons name="shield-checkmark-outline" size={24} color="#000" />
+            <Text style={styles.menuText}>Privacy Policy</Text>
+            <Ionicons name="chevron-forward" size={24} color="#666" />
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.socialSection}>
+          <Text style={styles.socialTitle}>Follow Us</Text>
+          <View style={styles.socialButtons}>
+            <TouchableOpacity 
+              style={styles.socialButton}
+              onPress={() => handleSocialLink('instagram')}
+            >
+              <Ionicons name="logo-instagram" size={24} color="#000" />
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={styles.socialButton}
+              onPress={() => handleSocialLink('website')}
+            >
+              <Ionicons name="globe-outline" size={24} color="#000" />
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={styles.socialButton}
+              onPress={() => handleSocialLink('email')}
+            >
+              <Ionicons name="mail-outline" size={24} color="#000" />
+            </TouchableOpacity>
           </View>
         </View>
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>About Us:</Text>
-          <Text style={styles.aboutText}>
-            Kuwait Board of Obstetrics and Gynaecology (KBOG) is dedicated to
-            advancing women's healthcare through excellence in education,
-            research, and practice.
-          </Text>
-        </View>
+        <TouchableOpacity 
+          style={styles.logoutButton}
+          onPress={handleLogout}
+        >
+          <Text style={styles.logoutText}>Logout</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+}
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Version</Text>
-          <Text style={styles.versionText}>1.0.0</Text>
-        </View>
-        <View style={styles.logoutContainer}>
-          <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-            <Text style={styles.logoutText}>Logout</Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+export default function SettingsScreen({ handleLogout, role }) {
+  return (
+    <Stack.Navigator>
+      <Stack.Screen 
+        name="Settings"
+        options={{ headerShown: false }}
+      >
+        {(props) => <MainSettingsScreen {...props} handleLogout={handleLogout} role={role} />}
+      </Stack.Screen>
+      <Stack.Screen name="AboutUs" component={AboutUsScreen} />
+      <Stack.Screen name="PrivacyPolicy" component={PrivacyPolicyScreen} />
+    </Stack.Navigator>
   );
 }
 
@@ -101,73 +191,100 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#fff",
   },
-  section: {
+  contentWrapper: {
+    flex: 1,
+    justifyContent: 'center',
+    paddingHorizontal: 20,
+  },
+  logoContainer: {
+    alignItems: 'center',
+    marginBottom: 40,
+    backgroundColor: '#000',
     padding: 20,
+    borderRadius: 15,
+  },
+  logo: {
+    width: 200,
+    height: 100,
+  },
+  section: {
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
+    borderColor: "#eee",
+    backgroundColor: '#fff',
+    marginBottom: 30,
+  },
+  menuItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 15,
     borderBottomWidth: 1,
     borderBottomColor: "#eee",
   },
-  sectionTitle: {
-    fontSize: 20,
+  menuText: {
+    flex: 1,
+    marginLeft: 15,
+    fontSize: 16,
+  },
+  socialSection: {
+    alignItems: "center",
+    marginBottom: 30,
+  },
+  socialTitle: {
+    fontSize: 18,
     fontWeight: "bold",
     marginBottom: 15,
-    color: "#333",
   },
-  socialContainer: {
+  socialButtons: {
     flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "space-between",
-    gap: 15,
+    justifyContent: "center",
+    gap: 20,
   },
   socialButton: {
-    width: "45%",
-    alignItems: "center",
-    backgroundColor: "#f5f5f5",
-    borderRadius: 10,
-    padding: 15,
-    elevation: 2,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-  },
-  iconContainer: {
     width: 50,
     height: 50,
     borderRadius: 25,
+    backgroundColor: "#f5f5f5",
     justifyContent: "center",
     alignItems: "center",
-    marginBottom: 8,
   },
-  socialText: {
-    fontSize: 14,
-    color: "#333",
-    fontWeight: "500",
+  logoutButton: {
+    backgroundColor: "#000",
+    padding: 15,
+    borderRadius: 8,
+    alignItems: "center",
+  },
+  logoutText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  aboutContainer: {
+    padding: 20,
+    alignItems: "center",
+  },
+  aboutTitle: {
+    fontSize: 22,
+    fontWeight: "bold",
+    textAlign: "center",
+    marginBottom: 20,
   },
   aboutText: {
     fontSize: 16,
-    color: "#666",
     lineHeight: 24,
+    textAlign: "justify",
   },
-  versionText: {
+  policyContainer: {
+    padding: 20,
+  },
+  policyTitle: {
+    fontSize: 22,
+    fontWeight: "bold",
+    marginBottom: 20,
+  },
+  policyText: {
     fontSize: 16,
-    color: "#666",
-  },
-  logoutButton: {
-    width: "90%",
-    backgroundColor: "red",
-    padding: 15,
-    borderRadius: 10,
-  },
-  logoutText: {
-    color: "white",
-    textAlign: "center",
-  },
-  logoutContainer: {
-    width: "100%",
-    alignItems: "center",
-    marginTop: 30,
+    lineHeight: 24,
+    textAlign: "justify",
   },
 });
