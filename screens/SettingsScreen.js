@@ -175,7 +175,7 @@ export default function SettingsScreen({ handleLogout, role }) {
   return (
     <Stack.Navigator>
       <Stack.Screen 
-        name="Settings"
+        name="SettingsScreen"
         options={{ headerShown: false }}
       >
         {(props) => <MainSettingsScreen {...props} handleLogout={handleLogout} role={role} />}

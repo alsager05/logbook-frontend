@@ -1,16 +1,28 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
 import { formSubmissionsService } from '../api/formSubmissions';
 
 export default function ResidentSubmissionsScreen({ navigation }) {
-  // Get resident's submitted forms
-  const { data: submissions, isLoading, error } = useQuery({
+  const { 
+    data, 
+    isLoading, 
+    error,
+    refetch
+  } = useQuery({
     queryKey: ['residentSubmissions'],
     queryFn: formSubmissionsService.getResidentSubmissions,
   });
 
-  if (isLoading) {
+  const [refreshing, setRefreshing] = React.useState(false);
+
+  const onRefresh = React.useCallback(async () => {
+    setRefreshing(true);
+    await refetch();
+    setRefreshing(false);
+  }, [refetch]);
+
+  if (isLoading && !refreshing) {
     return (
       <View style={styles.container}>
         <Text style={styles.messageText}>Loading submissions...</Text>
@@ -26,8 +38,7 @@ export default function ResidentSubmissionsScreen({ navigation }) {
     );
   }
 
-  // Ensure data is an array
-  const submittedForms = Array.isArray(submissions) ? submissions : [];
+  const submissions = Array.isArray(data) ? data : [];
 
   const getStatusColor = (status) => {
     switch (status?.toLowerCase()) {
@@ -43,12 +54,22 @@ export default function ResidentSubmissionsScreen({ navigation }) {
   };
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView 
+      style={styles.container}
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          colors={['#4F46E5']}
+          tintColor="#4F46E5"
+        />
+      }
+    >
       <View style={styles.submissionsContainer}>
-        {submittedForms.length === 0 ? (
+        {submissions.length === 0 ? (
           <Text style={styles.messageText}>No submissions found</Text>
         ) : (
-          submittedForms.map((submission) => (
+          submissions.map((submission) => (
             <TouchableOpacity 
               key={submission._id}
               style={styles.submissionCard}
@@ -56,7 +77,7 @@ export default function ResidentSubmissionsScreen({ navigation }) {
                 formName: submission.formTemplate?.formName || 'Form',
                 formId: submission.formTemplate?._id,
                 submissionId: submission._id,
-                readOnly: true // Add this flag to make form read-only
+                readOnly: true
               })}
             >
               <Text style={styles.formName}>

@@ -1,16 +1,23 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
 import { formSubmissionsService } from '../api/formSubmissions';
 import { authService } from '../api/auth';
 
 export default function TutorHomeScreen({ navigation }) {
   // Get tutor's pending forms
-  const { data, isLoading, error } = useQuery({
+  const { data, isLoading, error, refetch } = useQuery({
     queryKey: ['tutorPendingForms'],
     queryFn: formSubmissionsService.getResidentSubmissions,
-    
   });
+
+  const [refreshing, setRefreshing] = React.useState(false);
+
+  const onRefresh = React.useCallback(async () => {
+    setRefreshing(true);
+    await refetch();
+    setRefreshing(false);
+  }, [refetch]);
 
   if (isLoading) {
     return (
@@ -31,30 +38,47 @@ export default function TutorHomeScreen({ navigation }) {
   const pendingForms = Array.isArray(data) ? data : [];
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView 
+      style={styles.container}
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          colors={['#4F46E5']}
+          tintColor="#4F46E5"
+        />
+      }
+    >
       <View style={styles.iconsContainer}>
         {pendingForms.length === 0 ? (
           <Text style={styles.messageText}>No pending forms</Text>
         ) : (
-          pendingForms.map((form) => (
-            <TouchableOpacity 
-              key={form._id}
-              style={styles.formCard}
-              onPress={() => navigation.navigate('FormReview', {
-                formName: form.formTemplate?.formName || 'Form',
-                formId: form.formTemplate?._id,
-                submissionId: form._id
-              })}
-            >
-              <Text style={styles.formName}>{form.formTemplate?.formName || 'Unnamed Form'}</Text>
-              <Text style={styles.formDetails}>
-                Submitted by: {form.resident?.username || 'Unknown Resident'}
-              </Text>
-              <Text style={styles.formDetails}>
-                Date: {new Date(form.submissionDate).toLocaleDateString()}
-              </Text>
-            </TouchableOpacity>
-          ))
+          pendingForms.map((form) => {
+            const dateField = form.fieldRecord.find(field => field.fieldName === 'Date');
+            const formattedDate = dateField?.value 
+              ? new Date(dateField.value).toLocaleDateString() 
+              : 'No date available';
+
+            return (
+              <TouchableOpacity 
+                key={form._id}
+                style={styles.formCard}
+                onPress={() => navigation.navigate('FormReview', {
+                  formName: form.formTemplate?.formName || 'Form',
+                  formId: form.formTemplate?._id,
+                  submissionId: form._id
+                })}
+              >
+                <Text style={styles.formName}>{form.formTemplate?.formName || 'Unnamed Form'}</Text>
+                <Text style={styles.formDetails}>
+                  Submitted by: {form.resident?.username || 'Unknown Resident'}
+                </Text>
+                <Text style={styles.formDetails}>
+                  Date: {formattedDate}
+                </Text>
+              </TouchableOpacity>
+            );
+          })
         )}
       </View>
     </ScrollView>

@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, RefreshControl } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import FormScreen from './FormScreen';
 import { useQuery } from '@tanstack/react-query';
@@ -8,7 +8,7 @@ import { formsService } from '../api/forms';
 const HomeStack = createStackNavigator();
 
 function ResidentHomeContent({ navigation }) {
-  const { data: formTemplates, isLoading, error } = useQuery({
+  const { data: formTemplates, isLoading, error, refetch } = useQuery({
     queryKey: ['formTemplates'],
     queryFn: async () => {
       const response = await formsService.getAllForms();
@@ -16,6 +16,13 @@ function ResidentHomeContent({ navigation }) {
     }
   });
 
+  const [refreshing, setRefreshing] = React.useState(false);
+
+  const onRefresh = React.useCallback(async () => {
+    setRefreshing(true);
+    await refetch();
+    setRefreshing(false);
+  }, [refetch]);
 
   if (isLoading) {
     return (
@@ -51,7 +58,17 @@ function ResidentHomeContent({ navigation }) {
   };
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView 
+      style={styles.container}
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          colors={['#4F46E5']}
+          tintColor="#4F46E5"
+        />
+      }
+    >
       {/* <View style={styles.header}>
         <Text style={styles.welcomeText}>Home</Text>
         <Text style={styles.subtitleText}>Select a form to submit</Text>

@@ -71,7 +71,8 @@ export default function CustomDropdown({
             </View>
             <FlatList
               data={options}
-              keyExtractor={(item) => item.toString()}
+              // data={[...options].sort((a, b) => a.toString().localeCompare(b.toString()))}
+              keyExtractor={(item, index) => index.toString()}
               renderItem={({ item }) => (
                 <TouchableOpacity
                   style={[

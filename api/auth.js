@@ -30,6 +30,7 @@ export const authService = {
 
   checkToken: async () => {
     const token = await AsyncStorage.getItem('token');
+    console.log("token is this one", token);
    if(token){
     return true;
    }
@@ -76,13 +77,14 @@ export const authService = {
   getUser: async () => {
     try {
       const token = await AsyncStorage.getItem('token');
+
       if (!token) {
         console.log('No token found');
         return null;
       }
 
       const decodedUser = jwtDecode(token);
-      
+      console.log("decodedUser is this one", decodedUser);
       return {
         id: decodedUser.id,
         username: decodedUser.username,

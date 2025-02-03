@@ -16,6 +16,7 @@ import { authService } from './api/auth';
 import ChangePasswordScreen from './screens/ChangePasswordScreen';
 import ResidentSubmissionsScreen from './screens/ResidentSubmissionsScreen';
 import FormReviewScreen from './screens/FormReviewScreen';
+import AnnouncementStack from './navigation/AnnouncementStack';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -77,6 +78,7 @@ function AppContent() {
 
   const checkToken = async () => {
     const token = await authService.checkToken();
+
     if(token){
       const user = await authService.getUser();
       setIsLoggedIn(token);
@@ -86,7 +88,7 @@ function AppContent() {
 
   useEffect(()=>{
     checkToken();
-  },[])
+  },[isLoggedIn])
 
   if (requirePasswordChange) {
 
@@ -169,7 +171,8 @@ function AppContent() {
         )}
         <Tab.Screen 
           name="Announcements" 
-          component={AnnouncementScreen} 
+          options={{ headerShown: false }}
+          component={AnnouncementStack} 
         />
         <Tab.Screen 
           name="Settings" 

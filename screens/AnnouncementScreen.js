@@ -8,6 +8,7 @@ import {
   Dimensions,
   TouchableOpacity,
   Modal,
+  RefreshControl,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useQuery } from "@tanstack/react-query";
@@ -17,12 +18,14 @@ import pic from "../assets/annoucement2.jpg";
 
 export default function AnnouncementScreen() {
   const navigation = useNavigation();
-  const [selectedYear, setSelectedYear] = useState("2024");
+  const currentYear = new Date().getFullYear();
+
+  const [selectedYear, setSelectedYear] = useState("All");
   const [selectedMonth, setSelectedMonth] = useState("All");
   const [showYearPicker, setShowYearPicker] = useState(false);
   const [showMonthPicker, setShowMonthPicker] = useState(false);
 
-  const years = ["2024", "2023", "2022"];
+  const years = ["All", currentYear.toString(), (currentYear - 1).toString()];
   const months = [
     "All",
     "January",
@@ -39,21 +42,40 @@ export default function AnnouncementScreen() {
     "December",
   ];
 
-  const { data, isFetching, isSuccess } = useQuery({
+  const { data, isFetching, isSuccess, refetch } = useQuery({
     queryKey: ["announcementDetails"],
     queryFn: getAllAnnouncements,
   });
-  console.log("data is this one", data);
+
+  const [refreshing, setRefreshing] = useState(false);
+
+  const onRefresh = React.useCallback(async () => {
+    setRefreshing(true);
+    await refetch();
+    setRefreshing(false);
+  }, [refetch]);
+
   const filteredAnnouncements = data?.filter((announcement) => {
-    const announcementDate = new Date(announcement.date);
+    // If no filters are selected, return all announcements
+    if (selectedYear === "All" && selectedMonth === "All") {
+      return true;
+    }
+
+    const announcementDate = new Date(announcement.createdAt);
     const announcementYear = announcementDate.getFullYear().toString();
     const announcementMonth = months[announcementDate.getMonth() + 1];
 
-    return (
-      announcementYear === selectedYear &&
-      (selectedMonth === "All" ||
-        months[announcementDate.getMonth() + 1] === selectedMonth)
-    );
+    // Apply year filter if selected
+    if (selectedYear !== "All" && announcementYear !== selectedYear) {
+      return false;
+    }
+
+    // Apply month filter if selected
+    if (selectedMonth !== "All" && months[announcementDate.getMonth() + 1] !== selectedMonth) {
+      return false;
+    }
+
+    return true;
   });
 
   const Dropdown = ({
@@ -144,16 +166,26 @@ export default function AnnouncementScreen() {
               onSelect={setSelectedMonth}
             />
           </View>
-          <TouchableOpacity style={styles.searchButton} onPress={handleSearch}>
+          {/* <TouchableOpacity style={styles.searchButton} onPress={handleSearch}>
             <Ionicons name="search" size={24} color="#fff" />
-          </TouchableOpacity>
+          </TouchableOpacity> */}
         </View>
       </View>
 
-      <ScrollView style={styles.scrollView}>
-        {data?.map((announcement) => (
+      <ScrollView
+        style={styles.scrollView}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={['#4F46E5']}
+            tintColor="#4F46E5"
+          />
+        }
+      >
+        {filteredAnnouncements?.map((announcement) => (
           <TouchableOpacity
-            key={announcement.id}
+            key={announcement._id}
             style={styles.announcementCard}
             onPress={() => handleAnnouncementPress(announcement)}
           >
@@ -163,7 +195,7 @@ export default function AnnouncementScreen() {
               resizeMode="cover"
             />
             <View style={styles.contentContainer}>
-              <Text style={styles.date}>{new Date(announcement.date).toLocaleDateString()}</Text>
+              <Text style={styles.date}>{new Date(announcement.createdAt).toLocaleDateString()}</Text>
               <Text style={styles.title}>{announcement.title}</Text>
               <Text style={styles.description} numberOfLines={2}>
                 {announcement.body}
@@ -171,7 +203,7 @@ export default function AnnouncementScreen() {
             </View>
           </TouchableOpacity>
         ))}
-        {data?.length === 0 && (
+        {filteredAnnouncements?.length === 0 && (
           <Text style={styles.noResults}>
             No announcements found for selected period
           </Text>
