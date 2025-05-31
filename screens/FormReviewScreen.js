@@ -1,11 +1,19 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Alert, TouchableOpacity, TextInput } from 'react-native';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Picker } from '@react-native-picker/picker';
-import DateTimePicker from '@react-native-community/datetimepicker';
-import { formsService } from '../api/forms';
-import { formSubmissionsService } from '../api/formSubmissions';
-import CustomDropdown from '../components/CustomDropdown';
+import React, { useEffect, useState } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  Alert,
+  TouchableOpacity,
+  TextInput,
+} from "react-native";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Picker } from "@react-native-picker/picker";
+import DateTimePicker from "@react-native-community/datetimepicker";
+import { formsService } from "../api/forms";
+import { formSubmissionsService } from "../api/formSubmissions";
+import CustomDropdown from "../components/CustomDropdown";
 
 export default function FormReviewScreen({ route, navigation }) {
   const { formId, submissionId, formName, readOnly } = route.params;
@@ -17,13 +25,13 @@ export default function FormReviewScreen({ route, navigation }) {
 
   // Fetch form template and submission
   const { data: template, isLoading: templateLoading } = useQuery({
-    queryKey: ['formTemplate', formId],
-    queryFn: () => formsService.getFormById(formId)
+    queryKey: ["formTemplate", formId],
+    queryFn: () => formsService.getFormById(formId),
   });
 
   const { data: submission, isLoading: submissionLoading } = useQuery({
-    queryKey: ['formSubmission', submissionId],
-    queryFn: () => formSubmissionsService.getSubmissionById(submissionId)
+    queryKey: ["formSubmission", submissionId],
+    queryFn: () => formSubmissionsService.getSubmissionById(submissionId),
   });
 
   // Map existing records
@@ -32,7 +40,9 @@ export default function FormReviewScreen({ route, navigation }) {
       const recordsMap = {};
       submission.fieldRecord.forEach((record, index) => {
         // Find matching field template and map value to field name
-        const fieldTemplate = template?.fieldTemplates.find(f => f._id === record.fieldTemplate);
+        const fieldTemplate = template?.fieldTemplates.find(
+          (f) => f._id === record.fieldTemplate
+        );
         if (fieldTemplate) {
           recordsMap[fieldTemplate.name] = record.value;
         }
@@ -46,38 +56,40 @@ export default function FormReviewScreen({ route, navigation }) {
       return await formSubmissionsService.updateSubmission(submissionId, data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['formSubmission', submissionId]);
-      Alert.alert('Success', 'Form updated successfully');
+      queryClient.invalidateQueries(["formSubmission", submissionId]);
+      Alert.alert("Success", "Form updated successfully");
       navigation.goBack();
     },
     onError: (error) => {
-      Alert.alert('Error', error.message || 'Failed to update form');
-    }
+      Alert.alert("Error", error.message || "Failed to update form");
+    },
   });
 
   const handleSubmit = () => {
-    const updatedFields = Object.entries(newValues).map(([fieldName, value]) => {
-      const field = template.fieldTemplates.find(f => f.name === fieldName);
-      return {
-        fieldName,
-        value: value.toString(),
-        fieldTemplate: field?._id
-      };
-    });
+    const updatedFields = Object.entries(newValues).map(
+      ([fieldName, value]) => {
+        const field = template.fieldTemplates.find((f) => f.name === fieldName);
+        return {
+          fieldName,
+          value: value.toString(),
+          fieldTemplate: field?._id,
+        };
+      }
+    );
 
     if (updatedFields.length === 0) {
-      Alert.alert('No Changes', 'No new values to submit');
+      Alert.alert("No Changes", "No new values to submit");
       return;
     }
 
     submitMutation.mutate({ fieldRecords: updatedFields });
   };
 
-
   const renderField = (field) => {
     const existingValue = fieldRecords[field.name];
-    const isEditable = !readOnly && !existingValue && field.response === 'tutor';
-    const currentValue = existingValue || newValues[field.name] || '';
+    const isEditable =
+      !readOnly && !existingValue && field.response === "tutor";
+    const currentValue = existingValue || newValues[field.name] || "";
 
     const renderLabel = () => (
       <View style={styles.labelContainer}>
@@ -92,33 +104,37 @@ export default function FormReviewScreen({ route, navigation }) {
       return (
         <View style={styles.fieldContainer}>
           {renderLabel()}
-          <Text style={styles.value}>{existingValue || 'Not submitted'}</Text>
+          <Text style={styles.value}>{existingValue || "Not submitted"}</Text>
         </View>
       );
     }
 
     switch (field.type?.toLowerCase()) {
-      case 'text':
+      case "text":
         return (
           <View style={styles.fieldContainer}>
             {renderLabel()}
             <TextInput
               style={styles.input}
               value={currentValue}
-              onChangeText={(text) => setNewValues({...newValues, [field.name]: text})}
+              onChangeText={(text) =>
+                setNewValues({ ...newValues, [field.name]: text })
+              }
               placeholder="Enter value"
             />
           </View>
         );
 
-      case 'textarea':
+      case "textarea":
         return (
           <View style={styles.fieldContainer}>
             {renderLabel()}
             <TextInput
               style={[styles.input, styles.textareaInput]}
               value={currentValue}
-              onChangeText={(text) => setNewValues({...newValues, [field.name]: text})}
+              onChangeText={(text) =>
+                setNewValues({ ...newValues, [field.name]: text })
+              }
               multiline
               numberOfLines={4}
               placeholder="Enter value"
@@ -126,7 +142,7 @@ export default function FormReviewScreen({ route, navigation }) {
           </View>
         );
 
-      case 'select':
+      case "select":
         return (
           <View style={styles.fieldContainer}>
             {renderLabel()}
@@ -134,7 +150,9 @@ export default function FormReviewScreen({ route, navigation }) {
               <CustomDropdown
                 options={field.options || []}
                 selectedValue={currentValue}
-                onValueChange={(value) => setNewValues({...newValues, [field.name]: value})}
+                onValueChange={(value) =>
+                  setNewValues({ ...newValues, [field.name]: value })
+                }
                 placeholder={`Select ${field.name}`}
                 disabled={false}
               />
@@ -142,7 +160,7 @@ export default function FormReviewScreen({ route, navigation }) {
           </View>
         );
 
-      case 'scale':
+      case "scale":
         return (
           <View style={styles.fieldContainer}>
             {renderLabel()}
@@ -152,14 +170,16 @@ export default function FormReviewScreen({ route, navigation }) {
                   key={option}
                   style={[
                     styles.scaleButton,
-                    currentValue === option && styles.scaleButtonSelected
+                    currentValue === option && styles.scaleButtonSelected,
                   ]}
-                  onPress={() => setNewValues({...newValues, [field.name]: option})}
-                >
-                  <Text style={[
-                    styles.scaleButtonText,
-                    currentValue === option && styles.scaleButtonTextSelected
-                  ]}>
+                  onPress={() =>
+                    setNewValues({ ...newValues, [field.name]: option })
+                  }>
+                  <Text
+                    style={[
+                      styles.scaleButtonText,
+                      currentValue === option && styles.scaleButtonTextSelected,
+                    ]}>
                     {option}
                   </Text>
                 </TouchableOpacity>
@@ -176,7 +196,7 @@ export default function FormReviewScreen({ route, navigation }) {
   if (templateLoading || submissionLoading) {
     return (
       <View style={styles.container}>
-        <Text style={styles.messageText}>Loading form...</Text>
+        <Text style={styles.messageText}>Loading form ...</Text>
       </View>
     );
   }
@@ -195,17 +215,12 @@ export default function FormReviewScreen({ route, navigation }) {
 
       <View style={styles.formContainer}>
         {template?.fieldTemplates?.map((field, index) => (
-          <View key={field._id || index}>
-            {renderField(field)}
-          </View>
+          <View key={field._id || index}>{renderField(field)}</View>
         ))}
       </View>
 
       {!readOnly && Object.keys(newValues).length > 0 && (
-        <TouchableOpacity 
-          style={styles.submitButton}
-          onPress={handleSubmit}
-        >
+        <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
           <Text style={styles.submitButtonText}>Submit Review</Text>
         </TouchableOpacity>
       )}
@@ -216,36 +231,36 @@ export default function FormReviewScreen({ route, navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: "#f5f5f5",
   },
   header: {
     padding: 20,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+    borderBottomColor: "#e0e0e0",
   },
   title: {
     fontSize: 24,
-    fontWeight: 'bold',
-    color: '#000',
+    fontWeight: "bold",
+    color: "#000",
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 14,
-    color: '#666',
+    color: "#666",
     marginBottom: 4,
   },
   formContainer: {
     padding: 20,
   },
   fieldContainer: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     padding: 16,
     borderRadius: 8,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: '#e0e0e0',
-    shadowColor: '#000',
+    borderColor: "#e0e0e0",
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.2,
     shadowRadius: 2,
@@ -256,85 +271,85 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#000',
+    fontWeight: "600",
+    color: "#000",
     marginBottom: 4,
   },
   details: {
     fontSize: 14,
-    color: '#666',
-    fontStyle: 'italic',
+    color: "#666",
+    fontStyle: "italic",
   },
   value: {
     fontSize: 16,
-    color: '#333',
-    backgroundColor: '#f9f9f9',
+    color: "#333",
+    backgroundColor: "#f9f9f9",
     padding: 12,
     borderRadius: 6,
     borderWidth: 1,
-    borderColor: '#e0e0e0',
+    borderColor: "#e0e0e0",
   },
   scaleContainer: {
     gap: 8,
   },
   scaleDescription: {
     fontSize: 14,
-    color: '#666',
-    fontStyle: 'italic',
+    color: "#666",
+    fontStyle: "italic",
     marginTop: 4,
   },
   messageText: {
     fontSize: 16,
-    color: '#666',
-    textAlign: 'center',
+    color: "#666",
+    textAlign: "center",
     marginTop: 20,
   },
   input: {
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: "#ddd",
     borderRadius: 6,
     padding: 12,
     fontSize: 16,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
   },
   textareaInput: {
     height: 100,
-    textAlignVertical: 'top',
+    textAlignVertical: "top",
   },
   pickerContainer: {
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: "#ddd",
     borderRadius: 6,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
   },
   scaleButton: {
     padding: 10,
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: "#ddd",
     borderRadius: 6,
-    alignItems: 'center',
-    backgroundColor: '#fff',
+    alignItems: "center",
+    backgroundColor: "#fff",
   },
   scaleButtonSelected: {
-    backgroundColor: '#000',
+    backgroundColor: "#000",
   },
   scaleButtonText: {
     fontSize: 16,
-    color: '#000',
+    color: "#000",
   },
   scaleButtonTextSelected: {
-    color: '#fff',
+    color: "#fff",
   },
   submitButton: {
-    backgroundColor: '#000',
+    backgroundColor: "#000",
     padding: 16,
     borderRadius: 8,
     margin: 16,
-    alignItems: 'center',
+    alignItems: "center",
   },
   submitButtonText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: "600",
   },
-}); 
+});

@@ -13,13 +13,15 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.akalsharrah.logbook"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.akalsharrah.logbook"
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -27,6 +29,11 @@
     "assetBundlePatterns": [
       "**/*",
       "assets/*"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "23695373-7667-440f-901a-a8e8cfe024c9"
+      }
+    }
   }
 }
