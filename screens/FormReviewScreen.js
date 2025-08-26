@@ -68,7 +68,9 @@ export default function FormReviewScreen({ route, navigation }) {
   const handleSubmit = () => {
     const updatedFields = Object.entries(newValues).map(
       ([fieldName, value]) => {
-        const field = template.fieldTemplates.find((f) => f.name === fieldName);
+        const field = template?.fieldTemplates.find(
+          (f) => f.name === fieldName
+        );
         return {
           fieldName,
           value: value.toString(),
@@ -153,7 +155,8 @@ export default function FormReviewScreen({ route, navigation }) {
                 onValueChange={(value) =>
                   setNewValues({ ...newValues, [field.name]: value })
                 }
-                placeholder={`Select ${field.name}`}
+                // placeholder={`Select ${field.name}`}
+                placeholder={`Select`}
                 disabled={false}
               />
             </View>
@@ -213,10 +216,27 @@ export default function FormReviewScreen({ route, navigation }) {
         </Text>
       </View>
 
+      {template?.scaleDescription && (
+        <View style={styles.scaleDescriptionContainer}>
+          <Text style={styles.scaleDescriptionTitle}>
+            Evaluation Scale Guide
+          </Text>
+          <ScrollView
+            style={styles.scaleDescriptionScroll}
+            nestedScrollEnabled={true}>
+            <Text style={styles.scaleDescription}>
+              {template?.scaleDescription}
+            </Text>
+          </ScrollView>
+        </View>
+      )}
+
       <View style={styles.formContainer}>
-        {template?.fieldTemplates?.map((field, index) => (
-          <View key={field._id || index}>{renderField(field)}</View>
-        ))}
+        {template?.fieldTemplates
+          ?.sort((a, b) => parseInt(a.section) - parseInt(b.section))
+          .map((field, index) => (
+            <View key={field._id || index}>{renderField(field)}</View>
+          ))}
       </View>
 
       {!readOnly && Object.keys(newValues).length > 0 && (
@@ -292,12 +312,45 @@ const styles = StyleSheet.create({
   scaleContainer: {
     gap: 8,
   },
+  scaleDescriptionContainer: {
+    backgroundColor: "#fff",
+    borderRadius: 8,
+    margin: 16,
+    marginTop: 8,
+    marginBottom: 16,
+    borderLeftWidth: 4,
+    borderLeftColor: "#000",
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+    maxHeight: 200,
+  },
+  scaleDescriptionTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#000",
+    padding: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: "#e0e0e0",
+    backgroundColor: "#f8f8f8",
+  },
+  scaleDescriptionScroll: {
+    padding: 12,
+    maxHeight: 150,
+  },
   scaleDescription: {
     fontSize: 14,
-    color: "#666",
-    fontStyle: "italic",
-    marginTop: 4,
+    color: "#333",
+    lineHeight: 20,
   },
+  // scaleDescription: {
+  //   fontSize: 14,
+  //   color: "#666",
+  //   fontStyle: "italic",
+  //   marginTop: 4,
+  // },
   messageText: {
     fontSize: 16,
     color: "#666",

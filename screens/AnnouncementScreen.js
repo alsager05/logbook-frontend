@@ -71,7 +71,10 @@ export default function AnnouncementScreen() {
     }
 
     // Apply month filter if selected
-    if (selectedMonth !== "All" && months[announcementDate.getMonth() + 1] !== selectedMonth) {
+    if (
+      selectedMonth !== "All" &&
+      months[announcementDate.getMonth() + 1] !== selectedMonth
+    ) {
       return false;
     }
 
@@ -89,8 +92,7 @@ export default function AnnouncementScreen() {
     <View style={styles.dropdownContainer}>
       <TouchableOpacity
         style={styles.dropdownButton}
-        onPress={() => setVisible(true)}
-      >
+        onPress={() => setVisible(true)}>
         <Text style={styles.dropdownButtonText}>
           {title}: {selected}
         </Text>
@@ -101,13 +103,11 @@ export default function AnnouncementScreen() {
         visible={visible}
         transparent={true}
         animationType="fade"
-        onRequestClose={() => setVisible(false)}
-      >
+        onRequestClose={() => setVisible(false)}>
         <TouchableOpacity
           style={styles.modalOverlay}
           activeOpacity={1}
-          onPress={() => setVisible(false)}
-        >
+          onPress={() => setVisible(false)}>
           <View style={styles.modalContent}>
             {options.map((option) => (
               <TouchableOpacity
@@ -116,14 +116,12 @@ export default function AnnouncementScreen() {
                 onPress={() => {
                   onSelect(option);
                   setVisible(false);
-                }}
-              >
+                }}>
                 <Text
                   style={[
                     styles.optionText,
                     selected === option && styles.selectedOption,
-                  ]}
-                >
+                  ]}>
                   {option}
                 </Text>
               </TouchableOpacity>
@@ -140,7 +138,7 @@ export default function AnnouncementScreen() {
   };
 
   const handleAnnouncementPress = (announcement) => {
-    navigation.navigate('AnnouncementDetails', { announcement });
+    navigation.navigate("AnnouncementDetails", { announcement });
   };
 
   return (
@@ -178,24 +176,24 @@ export default function AnnouncementScreen() {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            colors={['#4F46E5']}
+            colors={["#4F46E5"]}
             tintColor="#4F46E5"
           />
-        }
-      >
+        }>
         {filteredAnnouncements?.map((announcement) => (
           <TouchableOpacity
             key={announcement._id}
             style={styles.announcementCard}
-            onPress={() => handleAnnouncementPress(announcement)}
-          >
-            <Image 
+            onPress={() => handleAnnouncementPress(announcement)}>
+            <Image
               source={pic}
               style={styles.announcementImage}
               resizeMode="cover"
             />
             <View style={styles.contentContainer}>
-              <Text style={styles.date}>{new Date(announcement.createdAt).toLocaleDateString()}</Text>
+              <Text style={styles.date}>
+                {new Date(announcement.createdAt).toLocaleDateString()}
+              </Text>
               <Text style={styles.title}>{announcement.title}</Text>
               <Text style={styles.description} numberOfLines={2}>
                 {announcement.body}
@@ -349,4 +347,3 @@ const styles = StyleSheet.create({
     shadowRadius: 3.84,
   },
 });
-

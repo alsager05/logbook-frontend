@@ -1,19 +1,31 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, RefreshControl } from 'react-native';
-import { createStackNavigator } from '@react-navigation/stack';
-import FormScreen from './FormScreen';
-import { useQuery } from '@tanstack/react-query';
-import { formsService } from '../api/forms';
+import React from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+  RefreshControl,
+} from "react-native";
+import { createStackNavigator } from "@react-navigation/stack";
+import FormScreen from "./FormScreen";
+import { useQuery } from "@tanstack/react-query";
+import { formsService } from "../api/forms";
 
 const HomeStack = createStackNavigator();
 
 function ResidentHomeContent({ navigation }) {
-  const { data: formTemplates, isLoading, error, refetch } = useQuery({
-    queryKey: ['formTemplates'],
+  const {
+    data: formTemplates,
+    isLoading,
+    error,
+    refetch,
+  } = useQuery({
+    queryKey: ["formTemplates"],
     queryFn: async () => {
       const response = await formsService.getAllForms();
       return Array.isArray(response) ? response : [];
-    }
+    },
   });
 
   const [refreshing, setRefreshing] = React.useState(false);
@@ -33,7 +45,7 @@ function ResidentHomeContent({ navigation }) {
   }
 
   if (error) {
-    console.error('Error in component:', error);
+    console.error("Error in component:", error);
     return (
       <View style={styles.container}>
         <Text style={styles.messageText}>Error: {error.message}</Text>
@@ -45,52 +57,50 @@ function ResidentHomeContent({ navigation }) {
 
   // Helper function to get subtitle based on form name
   const getFormSubtitle = (formName) => {
-    switch(formName.toUpperCase()) {
-      case 'OBS':
-        return 'Obstetrics';
-      case 'GYN':
-        return 'Gynecology';
-      case 'EPA':
-        return 'Entrustable Professional Activities';
+    switch (formName.toUpperCase()) {
+      case "OBS":
+        return "Obstetrics";
+      case "GYN":
+        return "Gynecology";
+      case "EPA":
+        return "Entrustable Professional Activities";
       default:
         return formName;
     }
   };
 
   return (
-    <ScrollView 
+    <ScrollView
       style={styles.container}
       refreshControl={
         <RefreshControl
           refreshing={refreshing}
           onRefresh={onRefresh}
-          colors={['#4F46E5']}
+          colors={["#4F46E5"]}
           tintColor="#4F46E5"
         />
-      }
-    >
+      }>
       {/* <View style={styles.header}>
         <Text style={styles.welcomeText}>Home</Text>
         <Text style={styles.subtitleText}>Select a form to submit</Text>
       </View> */}
-      
+
       <View style={styles.buttonContainer}>
         {templates.length > 0 ? (
           templates.map((template) => (
-            <TouchableOpacity 
+            <TouchableOpacity
               key={template._id}
               style={styles.categoryButton}
               onPress={() => {
-                navigation.navigate('Form', {
+                navigation.navigate("Form", {
                   formId: template._id,
                   formName: template.formName,
                   formData: {
                     ...template,
-                    fieldTemplates: template.fieldTemplates || []
-                  }
+                    fieldTemplates: template.fieldTemplates || [],
+                  },
                 });
-              }}
-            >
+              }}>
               <View style={styles.buttonContent}>
                 <View style={styles.textContainer}>
                   <Text style={styles.categoryTitle}>{template.formName}</Text>
@@ -111,21 +121,22 @@ function ResidentHomeContent({ navigation }) {
 
 export default function ResidentHomeScreen() {
   return (
-    <HomeStack.Navigator screenOptions={{ headerShown: true ,headerBackTitle: 'Back' }}>
-      <HomeStack.Screen 
-        name="ResidentHome" 
+    <HomeStack.Navigator
+      screenOptions={{ headerShown: true, headerBackTitle: "Back" }}>
+      <HomeStack.Screen
+        name="ResidentHome"
         component={ResidentHomeContent}
-        options={{ 
-          headerTitle: 'Resident Dashboard',
-          // headerShown: false 
+        options={{
+          headerTitle: "Resident Dashboard",
+          // headerShown: false
         }}
       />
-      <HomeStack.Screen 
-        name="Form" 
+      <HomeStack.Screen
+        name="Form"
         component={FormScreen}
         options={({ route }) => ({
-          headerTitle: route.params?.formName || 'Form',
-          headerShown: true
+          headerTitle: route.params?.formName || "Form",
+          headerShown: true,
         })}
       />
     </HomeStack.Navigator>
@@ -135,34 +146,34 @@ export default function ResidentHomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F7FA',  // Light grayish blue background
+    backgroundColor: "#F5F7FA", // Light grayish blue background
   },
   header: {
     padding: 20,
-    backgroundColor: '#FFFFFF',  // Clean white
+    backgroundColor: "#FFFFFF", // Clean white
     borderBottomWidth: 1,
-    borderBottomColor: '#E4E9F0',  // Soft gray border
+    borderBottomColor: "#E4E9F0", // Soft gray border
     marginBottom: 10,
   },
   welcomeText: {
     fontSize: 28,
-    fontWeight: 'bold',
-    color: '#2D3748',  // Deep blue-gray
+    fontWeight: "bold",
+    color: "#2D3748", // Deep blue-gray
     marginBottom: 5,
   },
   subtitleText: {
     fontSize: 16,
-    color: '#718096',  // Muted blue-gray
+    color: "#718096", // Muted blue-gray
   },
   buttonContainer: {
     padding: 15,
     gap: 15,
   },
   categoryButton: {
-    backgroundColor: '#FFFFFF',  // Clean white
+    backgroundColor: "#FFFFFF", // Clean white
     borderRadius: 12,
     elevation: 3,
-    shadowColor: '#718096',
+    shadowColor: "#718096",
     shadowOffset: {
       width: 0,
       height: 2,
@@ -178,19 +189,19 @@ const styles = StyleSheet.create({
   },
   categoryTitle: {
     fontSize: 20,
-    fontWeight: '600',
-    color: '#2D3748',  // Deep blue-gray
+    fontWeight: "600",
+    color: "#2D3748", // Deep blue-gray
     marginBottom: 4,
   },
   categorySubtitle: {
     fontSize: 16,
-    color: '#718096',  // Muted blue-gray
+    color: "#718096", // Muted blue-gray
   },
   messageText: {
     fontSize: 16,
-    textAlign: 'center',
+    textAlign: "center",
     marginTop: 50,
-    color: '#718096',  // Muted blue-gray
+    color: "#718096", // Muted blue-gray
     padding: 20,
-  }
-}); 
+  },
+});

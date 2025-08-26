@@ -1,41 +1,58 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, SafeAreaView, Alert } from 'react-native';
-import { useAuth } from '../hooks/useAuth';
-import api from '../api/axios';
+import React, { useState, useEffect } from "react";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  Image,
+  Alert,
+  ActivityIndicator,
+} from "react-native";
+import { useAuth } from "../hooks/useAuth";
+import api from "../api/axios";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const Colors = {
-  primary: '#000000',
-  background: '#FFFFFF',
-  text: '#000000',
-  textLight: '#666666',
-  border: '#CCCCCC',
-  inactive: '#888888',
+  primary: "#000000",
+  background: "#FFFFFF",
+  text: "#000000",
+  textLight: "#666666",
+  border: "#CCCCCC",
+  inactive: "#888888",
 };
 
-export default function LoginScreen({ onLogin }) {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [roles, setRoles] = useState('');
-  const { isLoggingIn } = useAuth();
+export default function LoginScreen({ onLogin, isLoggingIn }) {
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [roles, setRoles] = useState("");
+  const { login } = useAuth();
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     if (!username || !password || !roles) {
-      alert('Please fill in all fields');
+      alert("Please fill in all fields");
       return;
     }
 
     // Convert role to uppercase to match backend
     const normalizedRole = roles.toUpperCase();
-    
-    onLogin(username, password, normalizedRole);
+
+    try {
+      await login({ username, password, role: normalizedRole });
+      // If login is successful, call the onLogin callback
+      onLogin(username, password, normalizedRole);
+    } catch (error) {
+      console.error("Login error:", error);
+      alert("Login failed. Please try again.");
+    }
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={styles.safeArea} edges={["top"]}>
       <View style={styles.container}>
         <View style={styles.logoContainer}>
           <Image
-            source={require('../assets/kbog-logo.jpg')}
+            source={require("../assets/kbog-logo.jpg")}
             style={styles.logo}
             resizeMode="contain"
           />
@@ -44,7 +61,7 @@ export default function LoginScreen({ onLogin }) {
         <View style={styles.formWrapper}>
           <View style={styles.formContainer}>
             <Text style={styles.title}>Login</Text>
-            
+
             <TextInput
               style={styles.input}
               placeholder="Username"
@@ -62,37 +79,55 @@ export default function LoginScreen({ onLogin }) {
             />
 
             <View style={styles.roleContainer}>
-              <TouchableOpacity 
-                style={[styles.roleButton, roles === 'tutor' && styles.roleButtonActive]}
-                onPress={() => setRoles('tutor')}
-              >
-                <Text style={[styles.roleButtonText, roles === 'tutor' && styles.roleButtonTextActive]}>
+              <TouchableOpacity
+                style={[
+                  styles.roleButton,
+                  roles === "tutor" && styles.roleButtonActive,
+                ]}
+                onPress={() => setRoles("tutor")}>
+                <Text
+                  style={[
+                    styles.roleButtonText,
+                    roles === "tutor" && styles.roleButtonTextActive,
+                  ]}>
                   tutor
                 </Text>
               </TouchableOpacity>
-              <TouchableOpacity 
-                style={[styles.roleButton, roles === 'RESIDENT' && styles.roleButtonActive]}
-                onPress={() => setRoles('RESIDENT')}
-              >
-                <Text style={[styles.roleButtonText, roles === 'RESIDENT' && styles.roleButtonTextActive]}>
+              <TouchableOpacity
+                style={[
+                  styles.roleButton,
+                  roles === "RESIDENT" && styles.roleButtonActive,
+                ]}
+                onPress={() => setRoles("RESIDENT")}>
+                <Text
+                  style={[
+                    styles.roleButtonText,
+                    roles === "RESIDENT" && styles.roleButtonTextActive,
+                  ]}>
                   Resident
                 </Text>
               </TouchableOpacity>
             </View>
 
-            <TouchableOpacity 
+            <TouchableOpacity
               style={[
-                styles.loginButton, 
-                (!username || !password || !roles) ? styles.loginButtonDisabled : styles.loginButtonEnabled,
-                isLoggingIn && styles.loginButtonLoading
+                styles.loginButton,
+                !username || !password || !roles
+                  ? styles.loginButtonDisabled
+                  : styles.loginButtonEnabled,
+                isLoggingIn && styles.loginButtonLoading,
               ]}
               onPress={handleLogin}
-              disabled={!username || !password || !roles || isLoggingIn}
-            >
+              disabled={!username || !password || !roles || isLoggingIn}>
               <View style={styles.loginButtonContent}>
-                <Text style={styles.loginButtonText}>
-                  {isLoggingIn ? 'Logging in...' : 'Login'}
-                </Text>
+                {isLoggingIn ? (
+                  <View style={styles.loadingContainer}>
+                    <ActivityIndicator size="small" color="#fff" />
+                    <Text style={styles.loginButtonText}>Logging in...</Text>
+                  </View>
+                ) : (
+                  <Text style={styles.loginButtonText}>Login</Text>
+                )}
               </View>
             </TouchableOpacity>
           </View>
@@ -105,29 +140,29 @@ export default function LoginScreen({ onLogin }) {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#000',
+    backgroundColor: "#000",
   },
   container: {
     flex: 1,
-    backgroundColor: '#000',
+    backgroundColor: "#000",
   },
   logoContainer: {
-    height: '30%',
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#000',
+    height: "30%",
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#000",
   },
   logo: {
-    width: '100%',
-    height: '75%',
+    width: "100%",
+    height: "75%",
   },
   formWrapper: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderTopLeftRadius: 70,
   },
   formContainer: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderTopLeftRadius: 70,
     paddingHorizontal: 25,
     paddingTop: 20,
@@ -135,79 +170,84 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 28,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 20,
-    color: '#000',
-    textAlign: 'center',
+    color: "#000",
+    textAlign: "center",
   },
   label: {
     fontSize: 18,
-    fontWeight: '500',
+    fontWeight: "500",
     marginBottom: 8,
-    color: '#000',
+    color: "#000",
   },
   input: {
-    width: '100%',
+    width: "100%",
     height: 50,
     borderWidth: 1,
-    borderColor: '#E8E8E8',
+    borderColor: "#E8E8E8",
     borderRadius: 25,
     paddingHorizontal: 20,
     marginBottom: 20,
     fontSize: 16,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
   },
   roleContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     marginTop: 15,
     marginBottom: 25,
   },
   roleButton: {
-    width: '48%',
+    width: "48%",
     height: 45,
     borderRadius: 25,
-    backgroundColor: '#F5F5F5',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "#F5F5F5",
+    justifyContent: "center",
+    alignItems: "center",
   },
   roleButtonActive: {
-    backgroundColor: '#000',
+    backgroundColor: "#000",
   },
   roleButtonText: {
     fontSize: 16,
-    color: '#000',
-    fontWeight: '500',
+    color: "#000",
+    fontWeight: "500",
   },
   roleButtonTextActive: {
-    color: '#fff',
+    color: "#fff",
   },
   loginButton: {
     height: 45,
     borderRadius: 25,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     marginTop: 20,
     marginBottom: 20,
   },
   loginButtonEnabled: {
-    backgroundColor: '#000',
+    backgroundColor: "#000",
   },
   loginButtonDisabled: {
-    backgroundColor: '#666',
+    backgroundColor: "#666",
   },
   loginButtonLoading: {
-    backgroundColor: '#666',
+    backgroundColor: "#666",
   },
   loginButtonContent: {
-    width: '100%',
-    alignItems: 'center',
-    justifyContent: 'center',
+    width: "100%",
+    alignItems: "center",
+    justifyContent: "center",
   },
   loginButtonText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 16,
-    fontWeight: 'bold',
-    textAlign: 'center',
+    fontWeight: "bold",
+    textAlign: "center",
+  },
+  loadingContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
   },
 });

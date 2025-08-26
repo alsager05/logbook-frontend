@@ -176,6 +176,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#f5f5f5",
   },
   iconsContainer: {
+    paddingBottom: 50,
     gap: 15,
   },
   messageText: {
