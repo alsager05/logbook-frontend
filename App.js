@@ -21,6 +21,9 @@ import ChangePasswordScreen from "./screens/ChangePasswordScreen";
 import ResidentSubmissionsScreen from "./screens/ResidentSubmissionsScreen";
 import FormReviewScreen from "./screens/FormReviewScreen";
 import AnnouncementStack from "./navigation/AnnouncementStack";
+import DashboardScreen from "./screens/DashboardScreen";
+import FormsScreen from "./screens/FormsScreen";
+import FormScreen from "./screens/FormScreen";
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -119,8 +122,12 @@ function AppContent() {
           tabBarIcon: ({ focused, color, size }) => {
             let iconName;
 
-            if (route.name === "Home") {
-              iconName = focused ? "home" : "home-outline";
+            if (route.name === "Dashboard") {
+              iconName = focused ? "grid" : "grid-outline";
+            } else if (route.name === "Forms") {
+              iconName = focused ? "document-text" : "document-text-outline";
+            } else if (route.name === "My Submissions") {
+              iconName = focused ? "folder" : "folder-outline";
             } else if (route.name === "Announcements") {
               iconName = focused ? "megaphone" : "megaphone-outline";
             } else if (route.name === "Settings") {
@@ -131,11 +138,46 @@ function AppContent() {
           tabBarActiveTintColor: Colors.primary,
           tabBarInactiveTintColor: Colors.inactive,
         })}>
-        <Tab.Screen name="Home" options={{ headerShown: false }}>
-          {(props) => (
-            <HomeStack {...props} handleLogout={handleLogout} role={role} />
-          )}
+        {/* Dashboard Tab */}
+        <Tab.Screen
+          name="Dashboard"
+          options={{
+            headerShown: true,
+            headerTitle: "Dashboard",
+          }}>
+          {(props) => <DashboardScreen {...props} role={role} />}
         </Tab.Screen>
+
+        {/* Forms Tab - Only for tutors */}
+        {role === "TUTOR" && (
+          <Tab.Screen
+            name="Forms"
+            options={{
+              headerShown: true,
+              headerTitle: "Form Submissions",
+            }}>
+            {(props) => (
+              <Stack.Navigator>
+                <Stack.Screen
+                  name="FormsList"
+                  component={FormsScreen}
+                  options={{
+                    headerShown: false,
+                  }}
+                />
+                <Stack.Screen
+                  name="FormReview"
+                  component={FormReviewScreen}
+                  options={({ route }) => ({
+                    headerTitle: route.params?.formName || "Review Form",
+                  })}
+                />
+              </Stack.Navigator>
+            )}
+          </Tab.Screen>
+        )}
+
+        {/* My Submissions Tab - Only for residents */}
         {role === "RESIDENT" && (
           <Tab.Screen
             name="My Submissions"
@@ -159,6 +201,13 @@ function AppContent() {
                   options={{
                     headerTitle: "My Submissions",
                   }}
+                />
+                <Stack.Screen
+                  name="Form"
+                  component={FormScreen}
+                  options={({ route }) => ({
+                    headerTitle: route.params?.formName || "New Form",
+                  })}
                 />
                 <Stack.Screen
                   name="FormReview"
