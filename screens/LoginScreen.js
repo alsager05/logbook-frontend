@@ -12,6 +12,7 @@ import {
 import { useAuth } from "../hooks/useAuth";
 import api from "../api/axios";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useTheme } from "../contexts/ThemeContext";
 
 const Colors = {
   primary: "#000000",
@@ -27,6 +28,7 @@ export default function LoginScreen({ onLogin, isLoggingIn }) {
   const [password, setPassword] = useState("");
   const [roles, setRoles] = useState("");
   const { login } = useAuth();
+  const { theme, isDark } = useTheme();
 
   const handleLogin = async () => {
     if (!username || !password || !roles) {
@@ -47,62 +49,70 @@ export default function LoginScreen({ onLogin, isLoggingIn }) {
     }
   };
 
+  const themedStyles = createThemedStyles(theme);
+
   return (
-    <SafeAreaView style={styles.safeArea} edges={["top"]}>
-      <View style={styles.container}>
-        <View style={styles.logoContainer}>
+    <SafeAreaView style={themedStyles.safeArea} edges={["top"]}>
+      <View style={themedStyles.container}>
+        <View style={themedStyles.logoContainer}>
           <Image
-            source={require("../assets/kbog-logo.jpg")}
-            style={styles.logo}
+            source={
+              isDark
+                ? require("../assets/images/splash-icon-light.png")
+                : require("../assets/images/splash-icon-dark.png")
+            }
+            style={themedStyles.logo}
             resizeMode="contain"
           />
         </View>
 
-        <View style={styles.formWrapper}>
-          <View style={styles.formContainer}>
-            <Text style={styles.title}>Login</Text>
+        <View style={themedStyles.formWrapper}>
+          <View style={themedStyles.formContainer}>
+            <Text style={themedStyles.title}>Login</Text>
 
             <TextInput
-              style={styles.input}
+              style={themedStyles.input}
               placeholder="Username"
+              placeholderTextColor={theme.inputPlaceholder}
               value={username}
               onChangeText={setUsername}
               autoCapitalize="none"
             />
 
             <TextInput
-              style={styles.input}
+              style={themedStyles.input}
               placeholder="Password"
+              placeholderTextColor={theme.inputPlaceholder}
               value={password}
               onChangeText={setPassword}
               secureTextEntry
             />
 
-            <View style={styles.roleContainer}>
+            <View style={themedStyles.roleContainer}>
               <TouchableOpacity
                 style={[
-                  styles.roleButton,
-                  roles === "tutor" && styles.roleButtonActive,
+                  themedStyles.roleButton,
+                  roles === "tutor" && themedStyles.roleButtonActive,
                 ]}
                 onPress={() => setRoles("tutor")}>
                 <Text
                   style={[
-                    styles.roleButtonText,
-                    roles === "tutor" && styles.roleButtonTextActive,
+                    themedStyles.roleButtonText,
+                    roles === "tutor" && themedStyles.roleButtonTextActive,
                   ]}>
                   tutor
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[
-                  styles.roleButton,
-                  roles === "RESIDENT" && styles.roleButtonActive,
+                  themedStyles.roleButton,
+                  roles === "RESIDENT" && themedStyles.roleButtonActive,
                 ]}
                 onPress={() => setRoles("RESIDENT")}>
                 <Text
                   style={[
-                    styles.roleButtonText,
-                    roles === "RESIDENT" && styles.roleButtonTextActive,
+                    themedStyles.roleButtonText,
+                    roles === "RESIDENT" && themedStyles.roleButtonTextActive,
                   ]}>
                   Resident
                 </Text>
@@ -111,22 +121,24 @@ export default function LoginScreen({ onLogin, isLoggingIn }) {
 
             <TouchableOpacity
               style={[
-                styles.loginButton,
+                themedStyles.loginButton,
                 !username || !password || !roles
-                  ? styles.loginButtonDisabled
-                  : styles.loginButtonEnabled,
-                isLoggingIn && styles.loginButtonLoading,
+                  ? themedStyles.loginButtonDisabled
+                  : themedStyles.loginButtonEnabled,
+                isLoggingIn && themedStyles.loginButtonLoading,
               ]}
               onPress={handleLogin}
               disabled={!username || !password || !roles || isLoggingIn}>
-              <View style={styles.loginButtonContent}>
+              <View style={themedStyles.loginButtonContent}>
                 {isLoggingIn ? (
-                  <View style={styles.loadingContainer}>
+                  <View style={themedStyles.loadingContainer}>
                     <ActivityIndicator size="small" color="#fff" />
-                    <Text style={styles.loginButtonText}>Logging in...</Text>
+                    <Text style={themedStyles.loginButtonText}>
+                      Logging in...
+                    </Text>
                   </View>
                 ) : (
-                  <Text style={styles.loginButtonText}>Login</Text>
+                  <Text style={themedStyles.loginButtonText}>Login</Text>
                 )}
               </View>
             </TouchableOpacity>
@@ -137,117 +149,121 @@ export default function LoginScreen({ onLogin, isLoggingIn }) {
   );
 }
 
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: "#000",
-  },
-  container: {
-    flex: 1,
-    backgroundColor: "#000",
-  },
-  logoContainer: {
-    height: "30%",
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#000",
-  },
-  logo: {
-    width: "100%",
-    height: "75%",
-  },
-  formWrapper: {
-    flex: 1,
-    backgroundColor: "#fff",
-    borderTopLeftRadius: 70,
-  },
-  formContainer: {
-    backgroundColor: "#fff",
-    borderTopLeftRadius: 70,
-    paddingHorizontal: 25,
-    paddingTop: 20,
-    paddingBottom: 40,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: "bold",
-    marginBottom: 20,
-    color: "#000",
-    textAlign: "center",
-  },
-  label: {
-    fontSize: 18,
-    fontWeight: "500",
-    marginBottom: 8,
-    color: "#000",
-  },
-  input: {
-    width: "100%",
-    height: 50,
-    borderWidth: 1,
-    borderColor: "#E8E8E8",
-    borderRadius: 25,
-    paddingHorizontal: 20,
-    marginBottom: 20,
-    fontSize: 16,
-    backgroundColor: "#fff",
-  },
-  roleContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginTop: 15,
-    marginBottom: 25,
-  },
-  roleButton: {
-    width: "48%",
-    height: 45,
-    borderRadius: 25,
-    backgroundColor: "#F5F5F5",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  roleButtonActive: {
-    backgroundColor: "#000",
-  },
-  roleButtonText: {
-    fontSize: 16,
-    color: "#000",
-    fontWeight: "500",
-  },
-  roleButtonTextActive: {
-    color: "#fff",
-  },
-  loginButton: {
-    height: 45,
-    borderRadius: 25,
-    justifyContent: "center",
-    alignItems: "center",
-    marginTop: 20,
-    marginBottom: 20,
-  },
-  loginButtonEnabled: {
-    backgroundColor: "#000",
-  },
-  loginButtonDisabled: {
-    backgroundColor: "#666",
-  },
-  loginButtonLoading: {
-    backgroundColor: "#666",
-  },
-  loginButtonContent: {
-    width: "100%",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  loginButtonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "bold",
-    textAlign: "center",
-  },
-  loadingContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
-});
+const createThemedStyles = (theme) =>
+  StyleSheet.create({
+    safeArea: {
+      flex: 1,
+      backgroundColor: theme.surface,
+    },
+    container: {
+      flex: 1,
+      backgroundColor: theme.surface,
+    },
+    logoContainer: {
+      height: "30%",
+      justifyContent: "center",
+      alignItems: "center",
+      backgroundColor: theme.surface,
+    },
+    logo: {
+      width: "100%",
+      height: "75%",
+    },
+    formWrapper: {
+      flex: 1,
+      backgroundColor: theme.background,
+      borderTopLeftRadius: 70,
+    },
+    formContainer: {
+      backgroundColor: theme.background,
+      borderTopLeftRadius: 70,
+      paddingHorizontal: 25,
+      paddingTop: 20,
+      paddingBottom: 40,
+    },
+    title: {
+      fontSize: 28,
+      fontWeight: "bold",
+      marginBottom: 20,
+      color: theme.text,
+      textAlign: "center",
+    },
+    label: {
+      fontSize: 18,
+      fontWeight: "500",
+      marginBottom: 8,
+      color: theme.text,
+    },
+    input: {
+      width: "100%",
+      height: 50,
+      borderWidth: 1,
+      borderColor: theme.inputBorder,
+      borderRadius: 25,
+      paddingHorizontal: 20,
+      marginBottom: 20,
+      fontSize: 16,
+      backgroundColor: theme.input,
+      color: theme.text,
+    },
+    roleContainer: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      marginTop: 15,
+      marginBottom: 25,
+    },
+    roleButton: {
+      width: "48%",
+      height: 45,
+      borderRadius: 25,
+      backgroundColor: theme.surfaceVariant,
+      justifyContent: "center",
+      alignItems: "center",
+      borderWidth: 1,
+      borderColor: theme.border,
+    },
+    roleButtonActive: {
+      backgroundColor: theme.primary,
+    },
+    roleButtonText: {
+      fontSize: 16,
+      color: theme.text,
+      fontWeight: "500",
+    },
+    roleButtonTextActive: {
+      color: "#fff",
+    },
+    loginButton: {
+      height: 45,
+      borderRadius: 25,
+      justifyContent: "center",
+      alignItems: "center",
+      marginTop: 20,
+      marginBottom: 20,
+    },
+    loginButtonEnabled: {
+      backgroundColor: theme.primary,
+    },
+    loginButtonDisabled: {
+      backgroundColor: theme.textLight,
+    },
+    loginButtonLoading: {
+      backgroundColor: theme.textLight,
+    },
+    loginButtonContent: {
+      width: "100%",
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    loginButtonText: {
+      color: "#fff",
+      fontSize: 16,
+      fontWeight: "bold",
+      textAlign: "center",
+    },
+    loadingContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 8,
+    },
+  });

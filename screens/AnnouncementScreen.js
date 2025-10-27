@@ -15,10 +15,12 @@ import { useQuery } from "@tanstack/react-query";
 import { getAllAnnouncements } from "../api/announcement";
 import { useNavigation } from "@react-navigation/native";
 import pic from "../assets/annoucement2.jpg";
+import { useTheme } from "../contexts/ThemeContext";
 
 export default function AnnouncementScreen() {
   const navigation = useNavigation();
   const currentYear = new Date().getFullYear();
+  const { theme } = useTheme();
 
   const [selectedYear, setSelectedYear] = useState("All");
   const [selectedMonth, setSelectedMonth] = useState("All");
@@ -55,6 +57,8 @@ export default function AnnouncementScreen() {
     setRefreshing(false);
   }, [refetch]);
 
+  const themedStyles = createThemedStyles(theme);
+
   const filteredAnnouncements = data?.filter((announcement) => {
     // If no filters are selected, return all announcements
     if (selectedYear === "All" && selectedMonth === "All") {
@@ -89,11 +93,11 @@ export default function AnnouncementScreen() {
     setVisible,
     onSelect,
   }) => (
-    <View style={styles.dropdownContainer}>
+    <View style={themedStyles.dropdownContainer}>
       <TouchableOpacity
-        style={styles.dropdownButton}
+        style={themedStyles.dropdownButton}
         onPress={() => setVisible(true)}>
-        <Text style={styles.dropdownButtonText}>
+        <Text style={themedStyles.dropdownButtonText}>
           {title}: {selected}
         </Text>
         <Ionicons name="chevron-down" size={20} color="#666" />
@@ -105,22 +109,22 @@ export default function AnnouncementScreen() {
         animationType="fade"
         onRequestClose={() => setVisible(false)}>
         <TouchableOpacity
-          style={styles.modalOverlay}
+          style={themedStyles.modalOverlay}
           activeOpacity={1}
           onPress={() => setVisible(false)}>
-          <View style={styles.modalContent}>
+          <View style={themedStyles.modalContent}>
             {options.map((option) => (
               <TouchableOpacity
                 key={option}
-                style={styles.optionButton}
+                style={themedStyles.optionButton}
                 onPress={() => {
                   onSelect(option);
                   setVisible(false);
                 }}>
                 <Text
                   style={[
-                    styles.optionText,
-                    selected === option && styles.selectedOption,
+                    themedStyles.optionText,
+                    selected === option && themedStyles.selectedOption,
                   ]}>
                   {option}
                 </Text>
@@ -142,11 +146,11 @@ export default function AnnouncementScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.filterSection}>
-        <Text style={styles.filterTitle}>Filter by:</Text>
-        <View style={styles.filtersContainer}>
-          <View style={styles.dropdownsContainer}>
+    <View style={themedStyles.container}>
+      <View style={themedStyles.filterSection}>
+        <Text style={themedStyles.filterTitle}>Filter by:</Text>
+        <View style={themedStyles.filtersContainer}>
+          <View style={themedStyles.dropdownsContainer}>
             <Dropdown
               title="Year"
               selected={selectedYear}
@@ -171,38 +175,38 @@ export default function AnnouncementScreen() {
       </View>
 
       <ScrollView
-        style={styles.scrollView}
+        style={themedStyles.scrollView}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            colors={["#4F46E5"]}
-            tintColor="#4F46E5"
+            colors={[theme.primary]}
+            tintColor={theme.primary}
           />
         }>
         {filteredAnnouncements?.map((announcement) => (
           <TouchableOpacity
             key={announcement._id}
-            style={styles.announcementCard}
+            style={themedStyles.announcementCard}
             onPress={() => handleAnnouncementPress(announcement)}>
             <Image
               source={pic}
-              style={styles.announcementImage}
+              style={themedStyles.announcementImage}
               resizeMode="cover"
             />
-            <View style={styles.contentContainer}>
-              <Text style={styles.date}>
+            <View style={themedStyles.contentContainer}>
+              <Text style={themedStyles.date}>
                 {new Date(announcement.createdAt).toLocaleDateString()}
               </Text>
-              <Text style={styles.title}>{announcement.title}</Text>
-              <Text style={styles.description} numberOfLines={2}>
+              <Text style={themedStyles.title}>{announcement.title}</Text>
+              <Text style={themedStyles.description} numberOfLines={2}>
                 {announcement.body}
               </Text>
             </View>
           </TouchableOpacity>
         ))}
         {filteredAnnouncements?.length === 0 && (
-          <Text style={styles.noResults}>
+          <Text style={themedStyles.noResults}>
             No announcements found for selected period
           </Text>
         )}
@@ -213,137 +217,139 @@ export default function AnnouncementScreen() {
 
 const windowWidth = Dimensions.get("window").width;
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#fff",
-  },
-  filterSection: {
-    padding: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: "#eee",
-  },
-  filterTitle: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#333",
-    marginBottom: 10,
-  },
-  filtersContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-  },
-  dropdownsContainer: {
-    flex: 1,
-    flexDirection: "row",
-    gap: 10,
-  },
-  dropdownContainer: {
-    flex: 1,
-  },
-  dropdownButton: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    backgroundColor: "#f5f5f5",
-    padding: 10,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: "#ddd",
-  },
-  dropdownButtonText: {
-    fontSize: 16,
-    color: "#333",
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  modalContent: {
-    backgroundColor: "#fff",
-    borderRadius: 10,
-    padding: 10,
-    width: "80%",
-    maxHeight: "80%",
-  },
-  optionButton: {
-    padding: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: "#f0f0f0",
-  },
-  optionText: {
-    fontSize: 16,
-    color: "#333",
-  },
-  selectedOption: {
-    color: "#007AFF",
-    fontWeight: "bold",
-  },
-  scrollView: {
-    flex: 1,
-    padding: 15,
-  },
-  announcementCard: {
-    backgroundColor: "#fff",
-    borderRadius: 15,
-    marginBottom: 20,
-    elevation: 3,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
+const createThemedStyles = (theme) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: theme.surface,
     },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-  },
-  announcementImage: {
-    width: 400,
-    height: 200,
-    borderTopLeftRadius: 15,
-    borderTopRightRadius: 15,
-  },
-  contentContainer: {
-    padding: 15,
-  },
-  date: {
-    fontSize: 14,
-    color: "#666",
-    marginBottom: 5,
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginBottom: 8,
-    color: "#000",
-  },
-  description: {
-    fontSize: 16,
-    color: "#444",
-    lineHeight: 22,
-  },
-  noResults: {
-    textAlign: "center",
-    fontSize: 16,
-    color: "#666",
-    marginTop: 20,
-  },
-  searchButton: {
-    backgroundColor: "#007AFF",
-    width: 44,
-    height: 44,
-    borderRadius: 8,
-    justifyContent: "center",
-    alignItems: "center",
-    elevation: 2,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
+    filterSection: {
+      padding: 15,
+      borderBottomWidth: 1,
+      borderBottomColor: theme.border,
     },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-  },
-});
+    filterTitle: {
+      fontSize: 16,
+      fontWeight: "600",
+      color: theme.text,
+      marginBottom: 10,
+    },
+    filtersContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 10,
+    },
+    dropdownsContainer: {
+      flex: 1,
+      flexDirection: "row",
+      gap: 10,
+    },
+    dropdownContainer: {
+      flex: 1,
+    },
+    dropdownButton: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      backgroundColor: theme.card,
+      padding: 10,
+      borderRadius: 8,
+      borderWidth: 1,
+      borderColor: theme.border,
+    },
+    dropdownButtonText: {
+      fontSize: 16,
+      color: theme.text,
+    },
+    modalOverlay: {
+      flex: 1,
+      backgroundColor: "rgba(0, 0, 0, 0.5)",
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    modalContent: {
+      backgroundColor: "#fff",
+      borderRadius: 10,
+      padding: 10,
+      width: "80%",
+      maxHeight: "80%",
+    },
+    optionButton: {
+      padding: 15,
+      borderBottomWidth: 1,
+      borderBottomColor: "#f0f0f0",
+    },
+    optionText: {
+      fontSize: 16,
+      color: "#333",
+    },
+    selectedOption: {
+      color: "#007AFF",
+      fontWeight: "bold",
+    },
+    scrollView: {
+      flex: 1,
+      padding: 15,
+    },
+    announcementCard: {
+      backgroundColor: theme.card,
+      borderRadius: 15,
+      marginBottom: 20,
+      elevation: 3,
+      shadowColor: theme.text,
+      shadowOffset: {
+        width: 0,
+        height: 2,
+      },
+      shadowOpacity: 0.25,
+      shadowRadius: 3.84,
+    },
+    announcementImage: {
+      width: 400,
+      height: 200,
+      borderTopLeftRadius: 15,
+      borderTopRightRadius: 15,
+    },
+    contentContainer: {
+      padding: 15,
+      backgroundColor: theme.card,
+    },
+    date: {
+      fontSize: 14,
+      color: theme.textSecondary,
+      marginBottom: 5,
+    },
+    title: {
+      fontSize: 18,
+      fontWeight: "bold",
+      marginBottom: 8,
+      color: theme.text,
+    },
+    description: {
+      fontSize: 16,
+      color: theme.text,
+      lineHeight: 22,
+    },
+    noResults: {
+      textAlign: "center",
+      fontSize: 16,
+      color: theme.textSecondary,
+      marginTop: 20,
+    },
+    searchButton: {
+      backgroundColor: "#007AFF",
+      width: 44,
+      height: 44,
+      borderRadius: 8,
+      justifyContent: "center",
+      alignItems: "center",
+      elevation: 2,
+      shadowColor: "#000",
+      shadowOffset: {
+        width: 0,
+        height: 2,
+      },
+      shadowOpacity: 0.25,
+      shadowRadius: 3.84,
+    },
+  });

@@ -11,6 +11,7 @@ import {
   useMutation,
 } from "@tanstack/react-query";
 import { createStackNavigator } from "@react-navigation/stack";
+import { ThemeProvider, useTheme } from "./contexts/ThemeContext";
 import { HomeStack } from "./navigation/HomeStack";
 import AnnouncementScreen from "./screens/AnnouncementScreen";
 import SettingsScreen from "./screens/SettingsScreen";
@@ -36,6 +37,7 @@ function AppContent() {
   const [requirePasswordChange, setRequirePasswordChange] = useState(false);
   const [userId, setUserId] = useState(null);
   const { login, logout, isLoggingIn, loginError } = useAuth();
+  const { theme, isDark } = useTheme();
 
   const { mutate: loginMutation, isPending } = useMutation({
     mutationFn: (data) => authService.login(data),
@@ -116,133 +118,167 @@ function AppContent() {
   }
 
   return (
-    <NavigationContainer>
-      <Tab.Navigator
-        screenOptions={({ route }) => ({
-          tabBarIcon: ({ focused, color, size }) => {
-            let iconName;
+    <>
+      <StatusBar style={theme.statusBarStyle} />
+      <NavigationContainer>
+        <Tab.Navigator
+          screenOptions={({ route }) => ({
+            tabBarIcon: ({ focused, color, size }) => {
+              let iconName;
 
-            if (route.name === "Dashboard") {
-              iconName = focused ? "grid" : "grid-outline";
-            } else if (route.name === "Forms") {
-              iconName = focused ? "document-text" : "document-text-outline";
-            } else if (route.name === "My Submissions") {
-              iconName = focused ? "folder" : "folder-outline";
-            } else if (route.name === "Announcements") {
-              iconName = focused ? "megaphone" : "megaphone-outline";
-            } else if (route.name === "Settings") {
-              iconName = focused ? "settings" : "settings-outline";
-            }
-            return <Ionicons name={iconName} size={size} color={color} />;
-          },
-          tabBarActiveTintColor: Colors.primary,
-          tabBarInactiveTintColor: Colors.inactive,
-        })}>
-        {/* Dashboard Tab */}
-        <Tab.Screen
-          name="Dashboard"
-          options={{
-            headerShown: true,
-            headerTitle: "Dashboard",
-          }}>
-          {(props) => <DashboardScreen {...props} role={role} />}
-        </Tab.Screen>
-
-        {/* Forms Tab - Only for tutors */}
-        {role === "TUTOR" && (
+              if (route.name === "Dashboard") {
+                iconName = focused ? "grid" : "grid-outline";
+              } else if (route.name === "Forms") {
+                iconName = focused ? "document-text" : "document-text-outline";
+              } else if (route.name === "My Submissions") {
+                iconName = focused ? "folder" : "folder-outline";
+              } else if (route.name === "Announcements") {
+                iconName = focused ? "megaphone" : "megaphone-outline";
+              } else if (route.name === "Settings") {
+                iconName = focused ? "settings" : "settings-outline";
+              }
+              return <Ionicons name={iconName} size={size} color={color} />;
+            },
+            tabBarActiveTintColor: theme.tabActive,
+            tabBarInactiveTintColor: theme.tabInactive,
+            tabBarStyle: {
+              backgroundColor: theme.tabBackground,
+              borderTopColor: theme.border,
+            },
+            headerStyle: {
+              backgroundColor: theme.surface,
+              borderBottomColor: theme.border,
+            },
+            headerTitleStyle: {
+              color: theme.text,
+            },
+          })}>
+          {/* Dashboard Tab */}
           <Tab.Screen
-            name="Forms"
+            name="Dashboard"
             options={{
               headerShown: true,
-              headerTitle: "Form Submissions",
+              headerTitle: "Dashboard",
             }}>
-            {(props) => (
-              <Stack.Navigator>
-                <Stack.Screen
-                  name="FormsList"
-                  component={FormsScreen}
-                  options={{
-                    headerShown: false,
-                  }}
-                />
-                <Stack.Screen
-                  name="FormReview"
-                  component={FormReviewScreen}
-                  options={({ route }) => ({
-                    headerTitle: route.params?.formName || "Review Form",
-                  })}
-                />
-              </Stack.Navigator>
-            )}
+            {(props) => <DashboardScreen {...props} role={role} />}
           </Tab.Screen>
-        )}
 
-        {/* My Submissions Tab - Only for residents */}
-        {role === "RESIDENT" && (
-          <Tab.Screen
-            name="My Submissions"
-            options={{
-              headerShown: false,
-              tabBarIcon: ({ focused, color, size }) => (
-                <Ionicons
-                  name={focused ? "document-text" : "document-text-outline"}
-                  size={size}
-                  color={color}
-                />
-              ),
-              tabBarActiveTintColor: Colors.primary,
-              tabBarInactiveTintColor: Colors.inactive,
-            }}
-            children={(props) => (
-              <Stack.Navigator>
-                <Stack.Screen
-                  name="SubmissionsList"
-                  component={ResidentSubmissionsScreen}
-                  options={{
-                    headerTitle: "My Submissions",
-                  }}
-                />
-                <Stack.Screen
-                  name="Form"
-                  component={FormScreen}
-                  options={({ route }) => ({
-                    headerTitle: route.params?.formName || "New Form",
-                  })}
-                />
-                <Stack.Screen
-                  name="FormReview"
-                  component={FormReviewScreen}
-                  options={({ route }) => ({
-                    headerTitle: route.params?.formName || "Review Form",
-                  })}
-                />
-              </Stack.Navigator>
-            )}
-          />
-        )}
-        <Tab.Screen
-          name="Announcements"
-          options={{ headerShown: false }}
-          component={AnnouncementStack}
-        />
-        <Tab.Screen name="Settings" options={{ headerShown: false }}>
-          {(props) => (
-            <SettingsScreen
-              {...props}
-              handleLogout={handleLogout}
-              role={role}
+          {/* Forms Tab - Only for tutors */}
+          {role === "TUTOR" && (
+            <Tab.Screen
+              name="Forms"
+              options={{
+                headerShown: false,
+                headerTitle: "Form Submissions",
+              }}>
+              {(props) => (
+                <Stack.Navigator
+                  screenOptions={{
+                    headerStyle: {
+                      backgroundColor: theme.surface,
+                      borderBottomColor: theme.border,
+                    },
+                    headerTitleStyle: {
+                      color: theme.text,
+                    },
+                  }}>
+                  <Stack.Screen
+                    name="FormsList"
+                    component={FormsScreen}
+                    options={{
+                      headerTitle: "Form Submissions",
+                    }}
+                  />
+                  <Stack.Screen
+                    name="FormReview"
+                    component={FormReviewScreen}
+                    options={({ route }) => ({
+                      headerTitle: route.params?.formName || "Review Form",
+                    })}
+                  />
+                </Stack.Navigator>
+              )}
+            </Tab.Screen>
+          )}
+
+          {/* My Submissions Tab - Only for residents */}
+          {role === "RESIDENT" && (
+            <Tab.Screen
+              name="My Submissions"
+              options={{
+                headerShown: false,
+                tabBarIcon: ({ focused, color, size }) => (
+                  <Ionicons
+                    name={focused ? "document-text" : "document-text-outline"}
+                    size={size}
+                    color={color}
+                  />
+                ),
+                tabBarActiveTintColor: Colors.primary,
+                tabBarInactiveTintColor: Colors.inactive,
+              }}
+              children={(props) => (
+                <Stack.Navigator
+                  screenOptions={{
+                    headerStyle: {
+                      backgroundColor: theme.surface,
+                      borderBottomColor: theme.border,
+                    },
+                    headerTitleStyle: {
+                      color: theme.text,
+                    },
+                  }}>
+                  <Stack.Screen
+                    name="SubmissionsList"
+                    component={ResidentSubmissionsScreen}
+                    options={{
+                      headerTitle: "My Submissions",
+                    }}
+                  />
+                  <Stack.Screen
+                    name="Form"
+                    component={FormScreen}
+                    options={({ route }) => ({
+                      headerTitle: route.params?.formName || "New Form",
+                    })}
+                  />
+                  <Stack.Screen
+                    name="FormReview"
+                    component={FormReviewScreen}
+                    options={({ route }) => ({
+                      headerTitle: route.params?.formName || "Review Form",
+                    })}
+                  />
+                </Stack.Navigator>
+              )}
             />
           )}
-        </Tab.Screen>
-      </Tab.Navigator>
-    </NavigationContainer>
+          <Tab.Screen
+            name="Announcements"
+            options={{ headerShown: false }}
+            component={AnnouncementStack}
+          />
+          <Tab.Screen name="Settings" options={{ headerShown: false }}>
+            {(props) => (
+              <SettingsScreen
+                {...props}
+                handleLogout={handleLogout}
+                role={role}
+              />
+            )}
+          </Tab.Screen>
+        </Tab.Navigator>
+      </NavigationContainer>
+    </>
   );
 }
 
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <AppContent />
+      <ThemeProvider>
+        <AppContent />
+      </ThemeProvider>
     </QueryClientProvider>
   );
 }

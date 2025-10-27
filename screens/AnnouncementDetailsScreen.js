@@ -11,10 +11,14 @@ import {
   TouchableOpacity,
 } from "react-native";
 import pic from "../assets/annoucement2.jpg";
+import { useTheme } from "../contexts/ThemeContext";
 const { width } = Dimensions.get("window");
 
 const AnnouncementDetailsScreen = ({ route }) => {
   const { announcement } = route.params;
+  const { theme } = useTheme();
+
+  const themedStyles = createThemedStyles(theme);
 
   const handleLinkPress = async (url) => {
     try {
@@ -50,7 +54,7 @@ const AnnouncementDetailsScreen = ({ route }) => {
         const url = segment.slice(6, -7); // Remove [LINK] and [/LINK]
         return (
           <TouchableOpacity key={index} onPress={() => handleLinkPress(url)}>
-            <Text style={styles.link}>{url}</Text>
+            <Text style={themedStyles.link}>{url}</Text>
           </TouchableOpacity>
         );
       }
@@ -59,74 +63,75 @@ const AnnouncementDetailsScreen = ({ route }) => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={themedStyles.container}>
       <ScrollView bounces={false}>
         {announcement.image ? (
           <Image
             source={{ uri: announcement.image }}
-            style={styles.image}
+            style={themedStyles.image}
             resizeMode="cover"
           />
         ) : (
-          <Image source={pic} style={styles.image} resizeMode="cover" />
+          <Image source={pic} style={themedStyles.image} resizeMode="cover" />
         )}
-        <View style={styles.content}>
-          <Text style={styles.title}>{announcement.title}</Text>
-          <Text style={styles.date}>{announcement.date}</Text>
-          <View style={styles.divider} />
-          <Text style={styles.body}>{renderText(segments)}</Text>
+        <View style={themedStyles.content}>
+          <Text style={themedStyles.title}>{announcement.title}</Text>
+          <Text style={themedStyles.date}>{announcement.date}</Text>
+          <View style={themedStyles.divider} />
+          <Text style={themedStyles.body}>{renderText(segments)}</Text>
         </View>
       </ScrollView>
     </SafeAreaView>
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#fff",
-  },
-  image: {
-    width: width,
-    height: width * 0.6,
-    backgroundColor: "#f0f0f0",
-  },
-  content: {
-    padding: 20,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    marginTop: -20,
-    backgroundColor: "#fff",
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginBottom: 8,
-    color: "#1a1a1a",
-  },
-  date: {
-    fontSize: 14,
-    color: "#666",
-    marginBottom: 16,
-    fontStyle: "italic",
-  },
-  divider: {
-    height: 1,
-    backgroundColor: "#e0e0e0",
-    marginVertical: 16,
-  },
-  body: {
-    fontSize: 16,
-    lineHeight: 24,
-    color: "#333",
-    letterSpacing: 0.3,
-    // textAlign: 'justify',  // Added for better text alignment
-    paddingHorizontal: 2, // Added small padding for justified text
-  },
-  link: {
-    color: "#007AFF",
-    textDecorationLine: "underline",
-  },
-});
+const createThemedStyles = (theme) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: theme.surface,
+    },
+    image: {
+      width: width,
+      height: width * 0.6,
+      backgroundColor: theme.card,
+    },
+    content: {
+      padding: 20,
+      borderTopLeftRadius: 20,
+      borderTopRightRadius: 20,
+      marginTop: -20,
+      backgroundColor: theme.card,
+    },
+    title: {
+      fontSize: 24,
+      fontWeight: "bold",
+      marginBottom: 8,
+      color: theme.text,
+    },
+    date: {
+      fontSize: 14,
+      color: theme.textSecondary,
+      marginBottom: 16,
+      fontStyle: "italic",
+    },
+    divider: {
+      height: 1,
+      backgroundColor: theme.border,
+      marginVertical: 16,
+    },
+    body: {
+      fontSize: 16,
+      lineHeight: 24,
+      color: theme.text,
+      letterSpacing: 0.3,
+      // textAlign: 'justify',  // Added for better text alignment
+      paddingHorizontal: 2, // Added small padding for justified text
+    },
+    link: {
+      color: theme.primary,
+      textDecorationLine: "underline",
+    },
+  });
 
 export default AnnouncementDetailsScreen;

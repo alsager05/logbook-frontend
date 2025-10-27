@@ -19,7 +19,8 @@
         "tinted": "./assets/images/ios-tinted.png"
       },
       "supportsTablet": true,
-      "bundleIdentifier": "com.akalsharrah.logbook"
+      "bundleIdentifier": "com.akalsharrah.logbook",
+      "buildNumber": "3"
     },
     "android": {
       "adaptiveIcon": {

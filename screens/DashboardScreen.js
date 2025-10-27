@@ -12,11 +12,13 @@ import { useQuery } from "@tanstack/react-query";
 import { formSubmissionsService } from "../api/formSubmissions";
 import { authService } from "../api/auth";
 import { Ionicons } from "@expo/vector-icons";
+import { useTheme } from "../contexts/ThemeContext";
 
 const { width } = Dimensions.get("window");
 
 export default function DashboardScreen({ navigation, role }) {
   const [refreshing, setRefreshing] = React.useState(false);
+  const { theme } = useTheme();
 
   // Get user info
   const { data: userInfo, refetch: refetchUser } = useQuery({
@@ -56,16 +58,19 @@ export default function DashboardScreen({ navigation, role }) {
   const userRole = role || user.role?.[0] || "Unknown";
   const userSupervisor = user.supervisor || "N/A";
 
+  const themedStyles = createThemedStyles(theme);
+
   const StatCard = ({ title, value, icon, color, onPress }) => (
     <TouchableOpacity
-      style={[styles.statCard, { borderLeftColor: color }]}
+      style={[themedStyles.statCard, { borderLeftColor: color }]}
       onPress={onPress}>
-      <View style={styles.statCardContent}>
-        <View style={styles.statCardLeft}>
-          <Text style={styles.statValue}>{value}</Text>
-          <Text style={styles.statTitle}>{title}</Text>
+      <View style={themedStyles.statCardContent}>
+        <View style={themedStyles.statCardLeft}>
+          <Text style={themedStyles.statValue}>{value}</Text>
+          <Text style={themedStyles.statTitle}>{title}</Text>
         </View>
-        <View style={[styles.statIcon, { backgroundColor: color + "20" }]}>
+        <View
+          style={[themedStyles.statIcon, { backgroundColor: color + "20" }]}>
           <Ionicons name={icon} size={24} color={color} />
         </View>
       </View>
@@ -73,47 +78,60 @@ export default function DashboardScreen({ navigation, role }) {
   );
 
   const QuickActionCard = ({ title, subtitle, icon, color, onPress }) => (
-    <TouchableOpacity style={styles.actionCard} onPress={onPress}>
-      <View style={[styles.actionIcon, { backgroundColor: color + "20" }]}>
+    <TouchableOpacity style={themedStyles.actionCard} onPress={onPress}>
+      <View
+        style={[themedStyles.actionIcon, { backgroundColor: color + "20" }]}>
         <Ionicons name={icon} size={28} color={color} />
       </View>
-      <Text style={styles.actionTitle}>{title}</Text>
-      <Text style={styles.actionSubtitle}>{subtitle}</Text>
+      <Text style={themedStyles.actionTitle}>{title}</Text>
+      <Text style={themedStyles.actionSubtitle}>{subtitle}</Text>
     </TouchableOpacity>
   );
 
   return (
     <ScrollView
-      style={styles.container}
+      style={themedStyles.container}
       refreshControl={
         <RefreshControl
           refreshing={refreshing}
           onRefresh={onRefresh}
-          colors={["#4F46E5"]}
-          tintColor="#4F46E5"
+          colors={[theme.primary]}
+          tintColor={theme.primary}
         />
       }>
       {/* Welcome Section */}
-      <View style={styles.welcomeSection}>
-        <View style={styles.welcomeContent}>
-          <Text style={styles.welcomeText}>Welcome back,</Text>
-          <Text style={styles.userName}>{userName}</Text>
-          <View style={styles.userInfo}>
-            <View style={styles.userInfoItem}>
-              <Ionicons name="person-outline" size={16} color="#666" />
-              <Text style={styles.userInfoText}>{userRole}</Text>
+      <View style={themedStyles.welcomeSection}>
+        <View style={themedStyles.welcomeContent}>
+          <Text style={themedStyles.welcomeText}>Welcome back,</Text>
+          <Text style={themedStyles.userName}>{userName}</Text>
+          <View style={themedStyles.userInfo}>
+            <View style={themedStyles.userInfoItem}>
+              <Ionicons
+                name="person-outline"
+                size={16}
+                color={theme.textSecondary}
+              />
+              <Text style={themedStyles.userInfoText}>{userRole}</Text>
             </View>
             {userLevel !== "N/A" && (
-              <View style={styles.userInfoItem}>
-                <Ionicons name="school-outline" size={16} color="#666" />
-                <Text style={styles.userInfoText}>Level {userLevel}</Text>
+              <View style={themedStyles.userInfoItem}>
+                <Ionicons
+                  name="school-outline"
+                  size={16}
+                  color={theme.textSecondary}
+                />
+                <Text style={themedStyles.userInfoText}>Level {userLevel}</Text>
               </View>
             )}
           </View>
           {userSupervisor !== "N/A" && (
-            <View style={[styles.userInfoItem, { marginTop: 10 }]}>
-              <Ionicons name="person-outline" size={16} color="#666" />
-              <Text style={styles.userInfoText}>
+            <View style={[themedStyles.userInfoItem, { marginTop: 10 }]}>
+              <Ionicons
+                name="person-outline"
+                size={16}
+                color={theme.textSecondary}
+              />
+              <Text style={themedStyles.userInfoText}>
                 Supervisor: {userSupervisor}
               </Text>
             </View>
@@ -122,9 +140,9 @@ export default function DashboardScreen({ navigation, role }) {
       </View>
 
       {/* Stats Section */}
-      <View style={styles.statsSection}>
-        <Text style={styles.sectionTitle}>Overview</Text>
-        <View style={styles.statsGrid}>
+      <View style={themedStyles.statsSection}>
+        <Text style={themedStyles.sectionTitle}>Overview</Text>
+        <View style={themedStyles.statsGrid}>
           <StatCard
             title="Total Submissions"
             value={stats.totalSubmissions}
@@ -156,9 +174,9 @@ export default function DashboardScreen({ navigation, role }) {
       </View>
 
       {/* Quick Actions */}
-      <View style={styles.actionsSection}>
-        <Text style={styles.sectionTitle}>Quick Actions</Text>
-        <View style={styles.actionsGrid}>
+      <View style={themedStyles.actionsSection}>
+        <Text style={themedStyles.sectionTitle}>Quick Actions</Text>
+        <View style={themedStyles.actionsGrid}>
           {userRole.toUpperCase() === "RESIDENT" ? (
             <>
               <QuickActionCard
@@ -213,11 +231,11 @@ export default function DashboardScreen({ navigation, role }) {
 
       {/* Recent Activity */}
       {forms.length > 0 && (
-        <View style={styles.recentSection}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Recent Activity</Text>
+        <View style={themedStyles.recentSection}>
+          <View style={themedStyles.sectionHeader}>
+            <Text style={themedStyles.sectionTitle}>Recent Activity</Text>
             <TouchableOpacity onPress={() => navigation.navigate("Forms")}>
-              <Text style={styles.viewAllText}>View All</Text>
+              <Text style={themedStyles.viewAllText}>View All</Text>
             </TouchableOpacity>
           </View>
           {forms.slice(0, 3).map((form) => {
@@ -233,7 +251,7 @@ export default function DashboardScreen({ navigation, role }) {
             return (
               <TouchableOpacity
                 key={form._id}
-                style={styles.recentItem}
+                style={themedStyles.recentItem}
                 onPress={() =>
                   navigation.navigate("FormReview", {
                     formName: form.formTemplate?.formName || "Form",
@@ -241,12 +259,12 @@ export default function DashboardScreen({ navigation, role }) {
                     submissionId: form._id,
                   })
                 }>
-                <View style={styles.recentItemContent}>
-                  <View style={styles.recentItemLeft}>
-                    <Text style={styles.recentItemTitle}>
+                <View style={themedStyles.recentItemContent}>
+                  <View style={themedStyles.recentItemLeft}>
+                    <Text style={themedStyles.recentItemTitle}>
                       {form.formTemplate?.formName || "Unnamed Form"}
                     </Text>
-                    <Text style={styles.recentItemSubtitle}>
+                    <Text style={themedStyles.recentItemSubtitle}>
                       {userRole.toUpperCase() === "TUTOR"
                         ? `By: ${form.resident?.username || "Unknown"}`
                         : formattedDate}
@@ -254,13 +272,15 @@ export default function DashboardScreen({ navigation, role }) {
                   </View>
                   <View
                     style={[
-                      styles.statusBadge,
+                      themedStyles.statusBadge,
                       {
                         backgroundColor:
-                          form.status === "completed" ? "#10B981" : "#F59E0B",
+                          form.status === "completed"
+                            ? theme.success
+                            : theme.warning,
                       },
                     ]}>
-                    <Text style={styles.statusText}>
+                    <Text style={themedStyles.statusText}>
                       {form.status === "completed" ? "Completed" : "Pending"}
                     </Text>
                   </View>
@@ -274,187 +294,194 @@ export default function DashboardScreen({ navigation, role }) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#f8fafc",
-  },
-  welcomeSection: {
-    backgroundColor: "#fff",
-    padding: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: "#e2e8f0",
-  },
-  welcomeContent: {
-    paddingTop: 10,
-  },
-  welcomeText: {
-    fontSize: 16,
-    color: "#64748b",
-    marginBottom: 4,
-  },
-  userName: {
-    fontSize: 28,
-    fontWeight: "bold",
-    color: "#1e293b",
-    marginBottom: 12,
-  },
-  userInfo: {
-    flexDirection: "row",
-    gap: 16,
-  },
-  userInfoItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-  },
-  userInfoText: {
-    fontSize: 14,
-    color: "#64748b",
-    fontWeight: "500",
-  },
-  statsSection: {
-    padding: 20,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: "#1e293b",
-    marginBottom: 16,
-  },
-  statsGrid: {
-    gap: 12,
-  },
-  statCard: {
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    padding: 16,
-    borderLeftWidth: 4,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  statCardContent: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  statCardLeft: {
-    flex: 1,
-  },
-  statValue: {
-    fontSize: 32,
-    fontWeight: "bold",
-    color: "#1e293b",
-    marginBottom: 4,
-  },
-  statTitle: {
-    fontSize: 14,
-    color: "#64748b",
-    fontWeight: "500",
-  },
-  statIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  actionsSection: {
-    padding: 20,
-    paddingTop: 0,
-  },
-  actionsGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 12,
-  },
-  actionCard: {
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    padding: 16,
-    width: (width - 52) / 2,
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  actionIcon: {
-    width: 56,
-    height: 56,
-    borderRadius: 16,
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 12,
-  },
-  actionTitle: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#1e293b",
-    textAlign: "center",
-    marginBottom: 4,
-  },
-  actionSubtitle: {
-    fontSize: 12,
-    color: "#64748b",
-    textAlign: "center",
-  },
-  recentSection: {
-    padding: 20,
-    paddingTop: 0,
-  },
-  sectionHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 16,
-  },
-  viewAllText: {
-    fontSize: 14,
-    color: "#4F46E5",
-    fontWeight: "500",
-  },
-  recentItem: {
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 8,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  recentItemContent: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  recentItemLeft: {
-    flex: 1,
-  },
-  recentItemTitle: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#1e293b",
-    marginBottom: 4,
-  },
-  recentItemSubtitle: {
-    fontSize: 14,
-    color: "#64748b",
-  },
-  statusBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  statusText: {
-    fontSize: 12,
-    color: "#fff",
-    fontWeight: "500",
-  },
-});
+const createThemedStyles = (theme) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: theme.surfaceVariant,
+    },
+    welcomeSection: {
+      backgroundColor: theme.surface,
+      padding: 20,
+      borderBottomWidth: 1,
+      borderBottomColor: theme.border,
+    },
+    welcomeContent: {
+      paddingTop: 10,
+    },
+    welcomeText: {
+      fontSize: 16,
+      color: theme.textSecondary,
+      marginBottom: 4,
+    },
+    userName: {
+      fontSize: 28,
+      fontWeight: "bold",
+      color: theme.text,
+      marginBottom: 12,
+    },
+    userInfo: {
+      flexDirection: "row",
+      gap: 16,
+    },
+    userInfoItem: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 6,
+    },
+    userInfoText: {
+      fontSize: 14,
+      color: theme.textSecondary,
+      fontWeight: "500",
+    },
+    statsSection: {
+      padding: 20,
+    },
+    sectionTitle: {
+      fontSize: 20,
+      fontWeight: "bold",
+      color: theme.text,
+      marginBottom: 16,
+    },
+    statsGrid: {
+      gap: 12,
+    },
+    statCard: {
+      backgroundColor: theme.card,
+      borderRadius: 12,
+      padding: 16,
+      borderLeftWidth: 4,
+      shadowColor: theme.shadow,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 3,
+      borderColor: theme.cardBorder,
+      borderWidth: 1,
+    },
+    statCardContent: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+    },
+    statCardLeft: {
+      flex: 1,
+    },
+    statValue: {
+      fontSize: 32,
+      fontWeight: "bold",
+      color: theme.text,
+      marginBottom: 4,
+    },
+    statTitle: {
+      fontSize: 14,
+      color: theme.textSecondary,
+      fontWeight: "500",
+    },
+    statIcon: {
+      width: 48,
+      height: 48,
+      borderRadius: 12,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    actionsSection: {
+      padding: 20,
+      paddingTop: 0,
+    },
+    actionsGrid: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: 12,
+    },
+    actionCard: {
+      backgroundColor: theme.card,
+      borderRadius: 12,
+      padding: 16,
+      width: (width - 52) / 2,
+      alignItems: "center",
+      shadowColor: theme.shadow,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 3,
+      borderColor: theme.cardBorder,
+      borderWidth: 1,
+    },
+    actionIcon: {
+      width: 56,
+      height: 56,
+      borderRadius: 16,
+      justifyContent: "center",
+      alignItems: "center",
+      marginBottom: 12,
+    },
+    actionTitle: {
+      fontSize: 16,
+      fontWeight: "600",
+      color: theme.text,
+      textAlign: "center",
+      marginBottom: 4,
+    },
+    actionSubtitle: {
+      fontSize: 12,
+      color: theme.textSecondary,
+      textAlign: "center",
+    },
+    recentSection: {
+      padding: 20,
+      paddingTop: 0,
+    },
+    sectionHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: 16,
+    },
+    viewAllText: {
+      fontSize: 14,
+      color: theme.primary,
+      fontWeight: "500",
+    },
+    recentItem: {
+      backgroundColor: theme.card,
+      borderRadius: 12,
+      padding: 16,
+      marginBottom: 8,
+      shadowColor: theme.shadow,
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.1,
+      shadowRadius: 2,
+      elevation: 2,
+      borderColor: theme.cardBorder,
+      borderWidth: 1,
+    },
+    recentItemContent: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+    },
+    recentItemLeft: {
+      flex: 1,
+    },
+    recentItemTitle: {
+      fontSize: 16,
+      fontWeight: "600",
+      color: theme.text,
+      marginBottom: 4,
+    },
+    recentItemSubtitle: {
+      fontSize: 14,
+      color: theme.textSecondary,
+    },
+    statusBadge: {
+      paddingHorizontal: 8,
+      paddingVertical: 4,
+      borderRadius: 12,
+    },
+    statusText: {
+      fontSize: 12,
+      color: "#fff",
+      fontWeight: "500",
+    },
+  });
