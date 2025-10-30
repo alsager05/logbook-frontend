@@ -25,6 +25,14 @@ import AnnouncementStack from "./navigation/AnnouncementStack";
 import DashboardScreen from "./screens/DashboardScreen";
 import FormsScreen from "./screens/FormsScreen";
 import FormScreen from "./screens/FormScreen";
+import MyInstitutionsScreen from "./screens/MyInstitutionsScreen";
+import BrowseInstitutionsScreen from "./screens/BrowseInstitutionsScreen";
+import InstitutionFormsScreen from "./screens/InstitutionFormsScreen";
+import ProfileScreen from "./screens/ProfileScreen";
+import EditProfileScreen from "./screens/EditProfileScreen";
+import DeleteAccountScreen from "./screens/DeleteAccountScreen";
+import AboutUsScreen from "./screens/AboutUsScreen";
+import PrivacyPolicyScreen from "./screens/PrivacyPolicyScreen";
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -128,14 +136,16 @@ function AppContent() {
 
               if (route.name === "Dashboard") {
                 iconName = focused ? "grid" : "grid-outline";
+              } else if (route.name === "Institutions") {
+                iconName = focused ? "business" : "business-outline";
               } else if (route.name === "Forms") {
                 iconName = focused ? "document-text" : "document-text-outline";
               } else if (route.name === "My Submissions") {
                 iconName = focused ? "folder" : "folder-outline";
               } else if (route.name === "Announcements") {
                 iconName = focused ? "megaphone" : "megaphone-outline";
-              } else if (route.name === "Settings") {
-                iconName = focused ? "settings" : "settings-outline";
+              } else if (route.name === "Profile") {
+                iconName = focused ? "person" : "person-outline";
               }
               return <Ionicons name={iconName} size={size} color={color} />;
             },
@@ -161,6 +171,64 @@ function AppContent() {
               headerTitle: "Dashboard",
             }}>
             {(props) => <DashboardScreen {...props} role={role} />}
+          </Tab.Screen>
+
+          {/* Institutions Tab - For both residents and tutors */}
+          <Tab.Screen
+            name="Institutions"
+            options={{
+              headerShown: false,
+            }}>
+            {(props) => (
+              <Stack.Navigator
+                screenOptions={{
+                  headerStyle: {
+                    backgroundColor: theme.surface,
+                    borderBottomColor: theme.border,
+                  },
+                  headerTitleStyle: {
+                    color: theme.text,
+                  },
+                  headerBackTitle: "Back",
+                }}>
+                <Stack.Screen
+                  name="MyInstitutions"
+                  component={MyInstitutionsScreen}
+                  options={{
+                    headerTitle: "My Institutions",
+                  }}
+                />
+                <Stack.Screen
+                  name="BrowseInstitutions"
+                  component={BrowseInstitutionsScreen}
+                  options={{
+                    headerTitle: "Browse Institutions",
+                  }}
+                />
+                <Stack.Screen
+                  name="InstitutionForms"
+                  component={InstitutionFormsScreen}
+                  options={({ route }) => ({
+                    headerTitle:
+                      route.params?.institutionName || "Institution Forms",
+                  })}
+                />
+                <Stack.Screen
+                  name="Form"
+                  component={FormScreen}
+                  options={({ route }) => ({
+                    headerTitle: route.params?.formName || "Form",
+                  })}
+                />
+                <Stack.Screen
+                  name="FormReview"
+                  component={FormReviewScreen}
+                  options={({ route }) => ({
+                    headerTitle: route.params?.formName || "Review Form",
+                  })}
+                />
+              </Stack.Navigator>
+            )}
           </Tab.Screen>
 
           {/* Forms Tab - Only for tutors */}
@@ -258,13 +326,62 @@ function AppContent() {
             options={{ headerShown: false }}
             component={AnnouncementStack}
           />
-          <Tab.Screen name="Settings" options={{ headerShown: false }}>
+
+          {/* Profile Tab - Replaces Settings */}
+          <Tab.Screen name="Profile" options={{ headerShown: false }}>
             {(props) => (
-              <SettingsScreen
-                {...props}
-                handleLogout={handleLogout}
-                role={role}
-              />
+              <Stack.Navigator
+                screenOptions={{
+                  headerStyle: {
+                    backgroundColor: theme.surface,
+                    borderBottomColor: theme.border,
+                  },
+                  headerTitleStyle: {
+                    color: theme.text,
+                  },
+                  headerBackTitle: "Back",
+                }}>
+                <Stack.Screen
+                  name="ProfileMain"
+                  options={{
+                    headerTitle: "Profile",
+                  }}>
+                  {(screenProps) => (
+                    <ProfileScreen
+                      {...screenProps}
+                      handleLogout={handleLogout}
+                    />
+                  )}
+                </Stack.Screen>
+                <Stack.Screen
+                  name="EditProfile"
+                  component={EditProfileScreen}
+                  options={{
+                    headerTitle: "Edit Profile",
+                  }}
+                />
+                <Stack.Screen
+                  name="DeleteAccount"
+                  component={DeleteAccountScreen}
+                  options={{
+                    headerTitle: "Delete Account",
+                  }}
+                />
+                <Stack.Screen
+                  name="AboutUs"
+                  component={AboutUsScreen}
+                  options={{
+                    headerTitle: "About Us",
+                  }}
+                />
+                <Stack.Screen
+                  name="PrivacyPolicy"
+                  component={PrivacyPolicyScreen}
+                  options={{
+                    headerTitle: "Privacy Policy",
+                  }}
+                />
+              </Stack.Navigator>
             )}
           </Tab.Screen>
         </Tab.Navigator>

@@ -220,11 +220,11 @@ export default function DashboardScreen({ navigation, role }) {
             onPress={() => navigation.navigate("Announcements")}
           />
           <QuickActionCard
-            title="Settings"
-            subtitle="Account settings"
-            icon="settings-outline"
+            title="Profile"
+            subtitle="Account & settings"
+            icon="person-outline"
             color="#6B7280"
-            onPress={() => navigation.navigate("Settings")}
+            onPress={() => navigation.navigate("Profile")}
           />
         </View>
       </View>
@@ -234,7 +234,14 @@ export default function DashboardScreen({ navigation, role }) {
         <View style={themedStyles.recentSection}>
           <View style={themedStyles.sectionHeader}>
             <Text style={themedStyles.sectionTitle}>Recent Activity</Text>
-            <TouchableOpacity onPress={() => navigation.navigate("Forms")}>
+            <TouchableOpacity
+              onPress={() =>
+                navigation.navigate(
+                  userRole.toUpperCase() === "RESIDENT"
+                    ? "My Submissions"
+                    : "Forms"
+                )
+              }>
               <Text style={themedStyles.viewAllText}>View All</Text>
             </TouchableOpacity>
           </View>
@@ -252,13 +259,28 @@ export default function DashboardScreen({ navigation, role }) {
               <TouchableOpacity
                 key={form._id}
                 style={themedStyles.recentItem}
-                onPress={() =>
-                  navigation.navigate("FormReview", {
-                    formName: form.formTemplate?.formName || "Form",
-                    formId: form.formTemplate?._id,
-                    submissionId: form._id,
-                  })
-                }>
+                onPress={() => {
+                  // Navigate to the appropriate tab first, then to FormReview
+                  if (userRole.toUpperCase() === "RESIDENT") {
+                    navigation.navigate("My Submissions", {
+                      screen: "FormReview",
+                      params: {
+                        formName: form.formTemplate?.formName || "Form",
+                        formId: form.formTemplate?._id,
+                        submissionId: form._id,
+                      },
+                    });
+                  } else {
+                    navigation.navigate("Forms", {
+                      screen: "FormReview",
+                      params: {
+                        formName: form.formTemplate?.formName || "Form",
+                        formId: form.formTemplate?._id,
+                        submissionId: form._id,
+                      },
+                    });
+                  }
+                }}>
                 <View style={themedStyles.recentItemContent}>
                   <View style={themedStyles.recentItemLeft}>
                     <Text style={themedStyles.recentItemTitle}>

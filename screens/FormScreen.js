@@ -21,7 +21,8 @@ import { useTheme } from "../contexts/ThemeContext";
 
 export default function FormScreen({ route, navigation }) {
   const queryClient = useQueryClient();
-  const { formId, formName, isReview } = route.params || {};
+  const { formId, formName, isReview, institutionId, institutionName } =
+    route.params || {};
   const [formData, setFormData] = useState({});
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [dateField, setDateField] = useState(null);
@@ -129,13 +130,20 @@ export default function FormScreen({ route, navigation }) {
         }),
       };
 
+      // Add institution context if available
+      if (institutionId) {
+        submissionData.institutionId = institutionId;
+      }
+
       await formSubmissionsService.submitForm(submissionData);
 
-      Alert.alert(
-        "Success",
-        "Form submitted successfully to the selected tutor",
-        [{ text: "OK", onPress: () => navigation.goBack() }]
-      );
+      const successMessage = institutionName
+        ? `Form submitted successfully to ${institutionName}`
+        : "Form submitted successfully to the selected tutor";
+
+      Alert.alert("Success", successMessage, [
+        { text: "OK", onPress: () => navigation.goBack() },
+      ]);
     } catch (error) {
       Alert.alert("Error", error.message || "Failed to submit form");
     }
@@ -174,7 +182,7 @@ export default function FormScreen({ route, navigation }) {
     if (user) {
       console.log("Current user:", {
         role: user.role,
-        id: user._id,
+        id: user.id,
         roleUpperCase: user.role?.toUpperCase(),
       });
     }
@@ -369,6 +377,16 @@ export default function FormScreen({ route, navigation }) {
       {template && (
         <>
           {/* <Text style={themedStyles.title}>{template?.name}</Text> */}
+
+          {/* Institution Badge (if submitting to institution) */}
+          {institutionName && (
+            <View style={themedStyles.institutionBadgeContainer}>
+              <Ionicons name="business" size={16} color={theme.primary} />
+              <Text style={themedStyles.institutionBadgeText}>
+                Submitting to: {institutionName}
+              </Text>
+            </View>
+          )}
 
           {isResident(user?.role) && (
             <View style={themedStyles.fieldContainer}>
@@ -688,5 +706,22 @@ const createThemedStyles = (theme) =>
     },
     scaleButtonTextDisabled: {
       color: theme.textSecondary,
+    },
+    institutionBadgeContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: theme.card,
+      padding: 12,
+      margin: 16,
+      marginBottom: 8,
+      borderRadius: 8,
+      borderLeftWidth: 4,
+      borderLeftColor: theme.primary,
+      gap: 8,
+    },
+    institutionBadgeText: {
+      fontSize: 14,
+      fontWeight: "600",
+      color: theme.text,
     },
   });

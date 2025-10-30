@@ -120,7 +120,7 @@ export default function ResidentSubmissionsScreen({ navigation }) {
         }>
         <View style={themedStyles.submissionsContainer}>
           {/* New Form Button */}
-          <TouchableOpacity
+          {/* <TouchableOpacity
             style={themedStyles.newFormButton}
             onPress={() => setShowFormModal(true)}>
             <View style={themedStyles.newFormButtonContent}>
@@ -141,7 +141,7 @@ export default function ResidentSubmissionsScreen({ navigation }) {
                 color={theme.primary}
               />
             </View>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
 
           {/* Submissions List */}
           <View style={themedStyles.sectionHeader}>
@@ -175,9 +175,19 @@ export default function ResidentSubmissionsScreen({ navigation }) {
                     readOnly: true,
                   })
                 }>
-                <Text style={themedStyles.formName}>
-                  {submission.formTemplate?.formName || "Unnamed Form"}
-                </Text>
+                <View style={themedStyles.cardHeader}>
+                  <Text style={themedStyles.formName}>
+                    {submission.formTemplate?.formName || "Unnamed Form"}
+                  </Text>
+                  {submission.institution && (
+                    <View style={themedStyles.institutionBadge}>
+                      <Ionicons name="business" size={12} color="#fff" />
+                      <Text style={themedStyles.institutionBadgeText}>
+                        {submission.institution.name}
+                      </Text>
+                    </View>
+                  )}
+                </View>
                 <View style={themedStyles.detailsContainer}>
                   <Text style={themedStyles.submissionDetails}>
                     Submitted:{" "}
@@ -342,11 +352,32 @@ const createThemedStyles = (theme) =>
       borderWidth: 1,
       borderColor: theme.cardBorder,
     },
+    cardHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "flex-start",
+      marginBottom: 8,
+      gap: 8,
+    },
     formName: {
       fontSize: 18,
       fontWeight: "bold",
       color: theme.text,
-      marginBottom: 8,
+      flex: 1,
+    },
+    institutionBadge: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: theme.primary,
+      paddingHorizontal: 8,
+      paddingVertical: 4,
+      borderRadius: 6,
+      gap: 4,
+    },
+    institutionBadgeText: {
+      fontSize: 11,
+      fontWeight: "600",
+      color: "#fff",
     },
     detailsContainer: {
       gap: 4,
