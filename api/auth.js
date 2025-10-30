@@ -91,4 +91,18 @@ export const authService = {
       return null;
     }
   },
+
+  register: async (formData) => {
+    try {
+      const response = await api.post("/users/signup", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Registration error:", error);
+      throw error;
+    }
+  },
 };

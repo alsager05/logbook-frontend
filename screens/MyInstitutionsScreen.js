@@ -149,7 +149,7 @@ export default function MyInstitutionsScreen({ navigation }) {
                 )}
 
                 {/* Stats */}
-                <View style={themedStyles.statsContainer}>
+                {/* <View style={themedStyles.statsContainer}>
                   <View style={themedStyles.statItem}>
                     <Ionicons
                       name="document-text"
@@ -170,7 +170,7 @@ export default function MyInstitutionsScreen({ navigation }) {
                       {institution.submissionsCount || 0} Submissions
                     </Text>
                   </View>
-                </View>
+                </View> */}
               </View>
 
               {/* Chevron */}

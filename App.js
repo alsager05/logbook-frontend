@@ -16,6 +16,7 @@ import { HomeStack } from "./navigation/HomeStack";
 import AnnouncementScreen from "./screens/AnnouncementScreen";
 import SettingsScreen from "./screens/SettingsScreen";
 import LoginScreen from "./screens/LoginScreen";
+import RegisterScreen from "./screens/RegisterScreen";
 import { useAuth } from "./hooks/useAuth";
 import { authService } from "./api/auth";
 import ChangePasswordScreen from "./screens/ChangePasswordScreen";
@@ -33,9 +34,11 @@ import EditProfileScreen from "./screens/EditProfileScreen";
 import DeleteAccountScreen from "./screens/DeleteAccountScreen";
 import AboutUsScreen from "./screens/AboutUsScreen";
 import PrivacyPolicyScreen from "./screens/PrivacyPolicyScreen";
+import ResidentDetailsScreen from "./screens/ResidentDetailsScreen";
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
+const AuthStack = createStackNavigator();
 
 const queryClient = new QueryClient();
 
@@ -122,7 +125,22 @@ function AppContent() {
   }
 
   if (!isLoggedIn) {
-    return <LoginScreen onLogin={handleLogin} isLoggingIn={isPending} />;
+    return (
+      <NavigationContainer>
+        <AuthStack.Navigator screenOptions={{ headerShown: false }}>
+          <AuthStack.Screen name="Login">
+            {(props) => (
+              <LoginScreen
+                {...props}
+                onLogin={handleLogin}
+                isLoggingIn={isPending}
+              />
+            )}
+          </AuthStack.Screen>
+          <AuthStack.Screen name="Register" component={RegisterScreen} />
+        </AuthStack.Navigator>
+      </NavigationContainer>
+    );
   }
 
   return (
@@ -211,6 +229,14 @@ function AppContent() {
                   options={({ route }) => ({
                     headerTitle:
                       route.params?.institutionName || "Institution Forms",
+                  })}
+                />
+                <Stack.Screen
+                  name="ResidentDetails"
+                  component={ResidentDetailsScreen}
+                  options={({ route }) => ({
+                    headerTitle:
+                      route.params?.residentName || "Resident Details",
                   })}
                 />
                 <Stack.Screen

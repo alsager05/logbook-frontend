@@ -23,7 +23,7 @@ const Colors = {
   inactive: "#888888",
 };
 
-export default function LoginScreen({ onLogin, isLoggingIn }) {
+export default function LoginScreen({ onLogin, isLoggingIn, navigation }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [roles, setRoles] = useState("");
@@ -142,6 +142,17 @@ export default function LoginScreen({ onLogin, isLoggingIn }) {
                 )}
               </View>
             </TouchableOpacity>
+
+            {/* Register Link */}
+            <View style={themedStyles.registerContainer}>
+              <Text style={themedStyles.registerText}>
+                Don't have an account?{" "}
+              </Text>
+              <TouchableOpacity
+                onPress={() => navigation && navigation.navigate("Register")}>
+                <Text style={themedStyles.registerLink}>Create Account</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
       </View>
@@ -265,5 +276,20 @@ const createThemedStyles = (theme) =>
       flexDirection: "row",
       alignItems: "center",
       gap: 8,
+    },
+    registerContainer: {
+      flexDirection: "row",
+      justifyContent: "center",
+      alignItems: "center",
+      marginTop: 20,
+    },
+    registerText: {
+      fontSize: 14,
+      color: theme.textSecondary,
+    },
+    registerLink: {
+      fontSize: 14,
+      fontWeight: "bold",
+      color: theme.primary,
     },
   });

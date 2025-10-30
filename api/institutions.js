@@ -74,4 +74,30 @@ export const institutionsService = {
       throw error;
     }
   },
+
+  // Get tutor's residents in institution
+  getMyResidents: async (institutionId) => {
+    try {
+      const response = await api.get(
+        `/users/residents/my-residents?institutionId=${institutionId}`
+      );
+      return response.data || response;
+    } catch (error) {
+      console.error("Error fetching my residents:", error);
+      throw error;
+    }
+  },
+
+  // Get resident details with submissions
+  getResidentDetails: async (residentId, institutionId) => {
+    try {
+      const response = await api.get(
+        `/users/residents/${residentId}/details?institutionId=${institutionId}`
+      );
+      return response.data || response;
+    } catch (error) {
+      console.error("Error fetching resident details:", error);
+      throw error;
+    }
+  },
 };
