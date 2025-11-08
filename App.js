@@ -1,4 +1,4 @@
-import "react-native-gesture-handler";
+// import "react-native-gesture-handler";
 import { StatusBar } from "expo-status-bar";
 import { StyleSheet, Text, View, Alert } from "react-native";
 import { useEffect, useState } from "react";
@@ -12,9 +12,6 @@ import {
 } from "@tanstack/react-query";
 import { createStackNavigator } from "@react-navigation/stack";
 import { ThemeProvider, useTheme } from "./contexts/ThemeContext";
-import { HomeStack } from "./navigation/HomeStack";
-import AnnouncementScreen from "./screens/AnnouncementScreen";
-import SettingsScreen from "./screens/SettingsScreen";
 import LoginScreen from "./screens/LoginScreen";
 import RegisterScreen from "./screens/RegisterScreen";
 import { useAuth } from "./hooks/useAuth";
