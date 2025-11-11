@@ -212,48 +212,54 @@ export default function FormReviewScreen({ route, navigation }) {
   }
 
   return (
-    <ScrollView style={themedStyles.container}>
-      <View style={themedStyles.header}>
-        <Text style={themedStyles.title}>{template?.formName}</Text>
-        <Text style={themedStyles.subtitle}>
-          Submitted by: {submission?.resident?.username}
-        </Text>
-        <Text style={themedStyles.subtitle}>
-          Reviewed by: {submission?.tutor?.username}
-        </Text>
-      </View>
-
-      {template?.scaleDescription && (
-        <View style={themedStyles.scaleDescriptionContainer}>
-          <Text style={themedStyles.scaleDescriptionTitle}>
-            Evaluation Scale Guide
+    <>
+      <ScrollView style={themedStyles.container}>
+        <View style={themedStyles.header}>
+          <Text style={themedStyles.title}>{template?.formName}</Text>
+          <Text style={themedStyles.subtitle}>
+            Submitted by: {submission?.resident?.username}
           </Text>
-          <ScrollView
-            style={themedStyles.scaleDescriptionScroll}
-            nestedScrollEnabled={true}>
-            <Text style={themedStyles.scaleDescription}>
-              {template?.scaleDescription}
-            </Text>
-          </ScrollView>
+          <Text style={themedStyles.subtitle}>
+            Reviewed by: {submission?.tutor?.username}
+          </Text>
         </View>
-      )}
 
-      <View style={themedStyles.formContainer}>
-        {template?.fieldTemplates
-          ?.sort((a, b) => parseInt(a.section) - parseInt(b.section))
-          .map((field, index) => (
-            <View key={field._id || index}>{renderField(field)}</View>
-          ))}
-      </View>
+        {template?.scaleDescription && (
+          <View style={themedStyles.scaleDescriptionContainer}>
+            <Text style={themedStyles.scaleDescriptionTitle}>
+              Evaluation Scale Guide
+            </Text>
+            <ScrollView
+              style={themedStyles.scaleDescriptionScroll}
+              nestedScrollEnabled={true}>
+              <Text style={themedStyles.scaleDescription}>
+                {template?.scaleDescription}
+              </Text>
+            </ScrollView>
+          </View>
+        )}
 
-      {!readOnly && Object.keys(newValues).length > 0 && (
+        <View style={themedStyles.formContainer}>
+          {template?.fieldTemplates
+            ?.sort((a, b) => parseInt(a.section) - parseInt(b.section))
+            .map((field, index) => (
+              <View key={field._id || index}>{renderField(field)}</View>
+            ))}
+        </View>
+      </ScrollView>
+      {!readOnly && (
         <TouchableOpacity
-          style={themedStyles.submitButton}
+          disabled={Object.keys(newValues).length === 0}
+          style={[
+            themedStyles.submitButton,
+            Object.keys(newValues).length === 0 &&
+              themedStyles.submitButtonDisabled,
+          ]}
           onPress={handleSubmit}>
           <Text style={themedStyles.submitButtonText}>Submit Review</Text>
         </TouchableOpacity>
       )}
-    </ScrollView>
+    </>
   );
 }
 
@@ -414,5 +420,8 @@ const createThemedStyles = (theme) =>
       color: theme.card,
       fontSize: 18,
       fontWeight: "600",
+    },
+    submitButtonDisabled: {
+      opacity: 0.5,
     },
   });

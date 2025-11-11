@@ -16,6 +16,7 @@ import * as ImagePicker from "expo-image-picker";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { profileService } from "../api/profile";
 import { useTheme } from "../contexts/ThemeContext";
+import { baseUrl } from "../api/baseUrl";
 
 export default function EditProfileScreen({ route, navigation }) {
   const { profile } = route.params;
@@ -31,7 +32,7 @@ export default function EditProfileScreen({ route, navigation }) {
     mutationFn: profileService.updateProfile,
     onSuccess: (data) => {
       // Invalidate and refetch profile
-      queryClient.invalidateQueries(["userProfile"]);
+      queryClient.invalidateQueries(["userProfile", "profile"]);
       Alert.alert("Success", "Profile updated successfully", [
         { text: "OK", onPress: () => navigation.goBack() },
       ]);
@@ -116,7 +117,7 @@ export default function EditProfileScreen({ route, navigation }) {
         <View style={themedStyles.imageContainer}>
           {selectedImage || profile?.image ? (
             <Image
-              source={{ uri: selectedImage || profile.image }}
+              source={{ uri: selectedImage || baseUrl + profile.image }}
               style={themedStyles.profileImage}
             />
           ) : (

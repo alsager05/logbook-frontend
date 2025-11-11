@@ -1,11 +1,12 @@
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { baseUrl } from "./baseUrl";
 
 // Create axios instance with default config
 const api = axios.create({
   // Update this to your actual API endpoint
   // baseURL: "http://localhost:8000", // Changed from 8081 to 8000 to match your backend
-  baseURL: "https://logbook-backend.onrender.com/", // Changed from 8081 to 8000 to match your backend
+  baseURL: baseUrl, // Changed from 8081 to 8000 to match your backend
   // headers: {
   //   'Content-Type': 'application/json',
   //   'Accept': 'application/json'

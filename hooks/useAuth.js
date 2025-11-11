@@ -1,22 +1,21 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { authService } from '../api/auth';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { authService } from "../api/auth";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export function useAuth() {
   const queryClient = useQueryClient();
 
   const loginMutation = useMutation({
-    mutationFn: (data)=>authService.login(data),
+    mutationFn: (data) => authService.login(data),
     onSuccess: async (data) => {
-      console.log('Login successful:', data);
       if (data.token) {
-        await AsyncStorage.setItem('token', data.token);
+        await AsyncStorage.setItem("token", data.token);
       }
-      queryClient.invalidateQueries(['user']);
+      queryClient.invalidateQueries(["user"]);
     },
     onError: (error) => {
-      console.error('Login mutation error:', error);
-    }
+      console.error("Login mutation error:", error);
+    },
   });
 
   const logoutMutation = useMutation({
@@ -35,4 +34,4 @@ export function useAuth() {
     loginError: loginMutation.error,
     logoutError: logoutMutation.error,
   };
-} 
+}

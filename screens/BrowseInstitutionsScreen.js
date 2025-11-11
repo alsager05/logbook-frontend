@@ -15,6 +15,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { institutionsService } from "../api/institutions";
 import { useTheme } from "../contexts/ThemeContext";
 import { Ionicons } from "@expo/vector-icons";
+import { InstitutionListSkeleton } from "../loading-skeletons";
 
 export default function BrowseInstitutionsScreen({ navigation }) {
   const [searchQuery, setSearchQuery] = useState("");
@@ -106,12 +107,7 @@ export default function BrowseInstitutionsScreen({ navigation }) {
   const themedStyles = createThemedStyles(theme);
 
   if (isLoading && !refreshing) {
-    return (
-      <View style={themedStyles.centerContainer}>
-        <ActivityIndicator size="large" color={theme.primary} />
-        <Text style={themedStyles.messageText}>Loading institutions...</Text>
-      </View>
-    );
+    return <InstitutionListSkeleton />;
   }
 
   if (error) {

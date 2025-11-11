@@ -1,12 +1,14 @@
 import React from "react";
+import { TouchableOpacity } from "react-native";
 import { createStackNavigator } from "@react-navigation/stack";
+import { Ionicons } from "@expo/vector-icons";
 import AnnouncementScreen from "../screens/AnnouncementScreen";
 import AnnouncementDetailsScreen from "../screens/AnnouncementDetailsScreen";
 import { useTheme } from "../contexts/ThemeContext";
 
 const Stack = createStackNavigator();
 
-export function AnnouncementStack() {
+export function AnnouncementStack({ navigation }) {
   const { theme } = useTheme();
 
   return (
@@ -26,6 +28,13 @@ export function AnnouncementStack() {
         component={AnnouncementScreen}
         options={{
           headerTitle: "Announcements",
+          headerLeft: () => (
+            <TouchableOpacity
+              onPress={() => navigation.openDrawer()}
+              style={{ marginLeft: 16 }}>
+              <Ionicons name="menu-outline" size={24} color={theme.text} />
+            </TouchableOpacity>
+          ),
         }}
       />
       <Stack.Screen

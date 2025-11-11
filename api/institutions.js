@@ -17,7 +17,7 @@ export const institutionsService = {
   getMyInstitutions: async () => {
     try {
       const response = await api.get("/institutions/me");
-      const institutions = response.data;
+      const institutions = response.data.institutions;
       return Array.isArray(institutions) ? institutions : [];
     } catch (error) {
       console.error("Error fetching my institutions:", error);

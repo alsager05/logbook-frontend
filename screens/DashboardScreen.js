@@ -13,23 +13,40 @@ import { formSubmissionsService } from "../api/formSubmissions";
 import { authService } from "../api/auth";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../contexts/ThemeContext";
+import { useInstitution } from "../contexts/InstitutionContext";
+import { institutionsService } from "../api/institutions";
+import { DashboardSkeleton } from "../loading-skeletons";
 
 const { width } = Dimensions.get("window");
 
 export default function DashboardScreen({ navigation, role }) {
   const [refreshing, setRefreshing] = React.useState(false);
   const { theme } = useTheme();
+  const { selectedInstitution } = useInstitution();
 
+  // Use institution-specific role (role prop is set from selectedInstitution.userRole)
+  const userRole = role || selectedInstitution?.userRole || "Unknown";
   // Get user info
-  const { data: userInfo, refetch: refetchUser } = useQuery({
+  const {
+    data: userInfo,
+    isLoading: userLoading,
+    refetch: refetchUser,
+  } = useQuery({
     queryKey: ["userInfo"],
     queryFn: authService.getUser,
+    // enabled: !!selectedInstitution?._id,
   });
 
   // Get submissions data
-  const { data: submissionsData, refetch: refetchSubmissions } = useQuery({
-    queryKey: ["dashboardSubmissions"],
-    queryFn: formSubmissionsService.getResidentSubmissions,
+  const {
+    data: submissionsData,
+    isLoading: submissionsLoading,
+    refetch: refetchSubmissions,
+  } = useQuery({
+    queryKey: ["dashboardSubmissions", selectedInstitution?._id],
+    queryFn: () =>
+      institutionsService.getInstitutionSubmissions(selectedInstitution?._id),
+    enabled: !!selectedInstitution?._id,
   });
 
   const onRefresh = React.useCallback(async () => {
@@ -53,9 +70,9 @@ export default function DashboardScreen({ navigation, role }) {
   };
 
   const user = userInfo || {};
+
   const userName = user.username || "User";
   const userLevel = user.level || user.year || "N/A";
-  const userRole = role || user.role?.[0] || "Unknown";
   const userSupervisor = user.supervisor || "N/A";
 
   const themedStyles = createThemedStyles(theme);
@@ -87,6 +104,11 @@ export default function DashboardScreen({ navigation, role }) {
       <Text style={themedStyles.actionSubtitle}>{subtitle}</Text>
     </TouchableOpacity>
   );
+
+  // Show skeleton while initial loading (not refreshing)
+  if ((userLoading || submissionsLoading) && !refreshing) {
+    return <DashboardSkeleton />;
+  }
 
   return (
     <ScrollView
@@ -148,21 +170,39 @@ export default function DashboardScreen({ navigation, role }) {
             value={stats.totalSubmissions}
             icon="document-text-outline"
             color="#4F46E5"
-            onPress={() => navigation.navigate("Forms")}
+            onPress={() =>
+              navigation.navigate(
+                userRole.toUpperCase() === "RESIDENT"
+                  ? "MySubmissions"
+                  : "Forms"
+              )
+            }
           />
           <StatCard
             title="Pending Review"
             value={stats.pendingForms}
             icon="time-outline"
             color="#F59E0B"
-            onPress={() => navigation.navigate("Forms")}
+            onPress={() =>
+              navigation.navigate(
+                userRole.toUpperCase() === "RESIDENT"
+                  ? "MySubmissions"
+                  : "Forms"
+              )
+            }
           />
           <StatCard
             title="Completed"
             value={stats.completedForms}
             icon="checkmark-circle-outline"
             color="#10B981"
-            onPress={() => navigation.navigate("Forms")}
+            onPress={() =>
+              navigation.navigate(
+                userRole.toUpperCase() === "RESIDENT"
+                  ? "MySubmissions"
+                  : "Forms"
+              )
+            }
           />
           <StatCard
             title="This Week"
@@ -184,14 +224,14 @@ export default function DashboardScreen({ navigation, role }) {
                 subtitle="Submit a form"
                 icon="add-circle-outline"
                 color="#4F46E5"
-                onPress={() => navigation.navigate("My Submissions")}
+                onPress={() => navigation.navigate("Forms")}
               />
               <QuickActionCard
                 title="My Submissions"
                 subtitle="View your forms"
                 icon="folder-outline"
                 color="#10B981"
-                onPress={() => navigation.navigate("My Submissions")}
+                onPress={() => navigation.navigate("MySubmissions")}
               />
             </>
           ) : (
@@ -204,11 +244,11 @@ export default function DashboardScreen({ navigation, role }) {
                 onPress={() => navigation.navigate("Forms")}
               />
               <QuickActionCard
-                title="All Submissions"
-                subtitle="View all forms"
-                icon="folder-outline"
+                title="My Residents"
+                subtitle="View residents"
+                icon="people-outline"
                 color="#10B981"
-                onPress={() => navigation.navigate("Forms")}
+                onPress={() => navigation.navigate("Residents")}
               />
             </>
           )}
@@ -224,7 +264,7 @@ export default function DashboardScreen({ navigation, role }) {
             subtitle="Account & settings"
             icon="person-outline"
             color="#6B7280"
-            onPress={() => navigation.navigate("Profile")}
+            onPress={() => navigation.getParent()?.navigate("Profile")}
           />
         </View>
       </View>
@@ -238,7 +278,7 @@ export default function DashboardScreen({ navigation, role }) {
               onPress={() =>
                 navigation.navigate(
                   userRole.toUpperCase() === "RESIDENT"
-                    ? "My Submissions"
+                    ? "MySubmissions"
                     : "Forms"
                 )
               }>
@@ -262,7 +302,7 @@ export default function DashboardScreen({ navigation, role }) {
                 onPress={() => {
                   // Navigate to the appropriate tab first, then to FormReview
                   if (userRole.toUpperCase() === "RESIDENT") {
-                    navigation.navigate("My Submissions", {
+                    navigation.navigate("MySubmissions", {
                       screen: "FormReview",
                       params: {
                         formName: form.formTemplate?.formName || "Form",

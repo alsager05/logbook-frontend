@@ -8,12 +8,15 @@ import {
   RefreshControl,
   Modal,
   Dimensions,
+  ActivityIndicator,
 } from "react-native";
 import { useQuery } from "@tanstack/react-query";
-import { formSubmissionsService } from "../api/formSubmissions";
+import { institutionsService } from "../api/institutions";
 import { formsService } from "../api/forms";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../contexts/ThemeContext";
+import { useInstitution } from "../contexts/InstitutionContext";
+import { SubmissionListSkeleton } from "../loading-skeletons";
 
 const { width } = Dimensions.get("window");
 
@@ -21,25 +24,27 @@ export default function ResidentSubmissionsScreen({ navigation }) {
   const [showFormModal, setShowFormModal] = React.useState(false);
   const [refreshing, setRefreshing] = React.useState(false);
   const { theme } = useTheme();
+  const { selectedInstitution } = useInstitution();
   const themedStyles = createThemedStyles(theme);
 
-  // Get resident submissions
+  // Get resident submissions for the selected institution
   const { data, isLoading, error, refetch } = useQuery({
-    queryKey: ["residentSubmissions"],
-    queryFn: formSubmissionsService.getResidentSubmissions,
+    queryKey: ["institutionSubmissions", selectedInstitution?._id],
+    queryFn: () =>
+      institutionsService.getInstitutionSubmissions(selectedInstitution?._id),
+    enabled: !!selectedInstitution?._id,
   });
 
-  // Get form templates for new submission
+  // Get form templates for new submission (filtered by institution)
   const {
     data: formTemplates,
     isLoading: templatesLoading,
     refetch: refetchTemplates,
   } = useQuery({
-    queryKey: ["formTemplates"],
-    queryFn: async () => {
-      const response = await formsService.getAllForms();
-      return Array.isArray(response) ? response : [];
-    },
+    queryKey: ["institutionForms", selectedInstitution?._id],
+    queryFn: () =>
+      institutionsService.getInstitutionForms(selectedInstitution?._id),
+    enabled: !!selectedInstitution?._id,
   });
 
   const onRefresh = React.useCallback(async () => {
@@ -67,6 +72,8 @@ export default function ResidentSubmissionsScreen({ navigation }) {
     navigation.navigate("Form", {
       formId: template._id,
       formName: template.formName,
+      institutionId: selectedInstitution?._id,
+      institutionName: selectedInstitution?.name,
       formData: {
         ...template,
         fieldTemplates: template.fieldTemplates || [],
@@ -75,11 +82,7 @@ export default function ResidentSubmissionsScreen({ navigation }) {
   };
 
   if (isLoading && !refreshing) {
-    return (
-      <View style={themedStyles.container}>
-        <Text style={themedStyles.messageText}>Loading submissions...</Text>
-      </View>
-    );
+    return <SubmissionListSkeleton />;
   }
 
   if (error) {

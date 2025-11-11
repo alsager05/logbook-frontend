@@ -9,18 +9,22 @@ import {
   TouchableOpacity,
   Modal,
   RefreshControl,
+  ActivityIndicator,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useQuery } from "@tanstack/react-query";
-import { getAllAnnouncements } from "../api/announcement";
+import { announcementService } from "../api/announcement";
 import { useNavigation } from "@react-navigation/native";
 import pic from "../assets/annoucement2.jpg";
 import { useTheme } from "../contexts/ThemeContext";
+import { useInstitution } from "../contexts/InstitutionContext";
+import { AnnouncementListSkeleton } from "../loading-skeletons";
 
 export default function AnnouncementScreen() {
   const navigation = useNavigation();
   const currentYear = new Date().getFullYear();
   const { theme } = useTheme();
+  const { selectedInstitution } = useInstitution();
 
   const [selectedYear, setSelectedYear] = useState("All");
   const [selectedMonth, setSelectedMonth] = useState("All");
@@ -44,9 +48,11 @@ export default function AnnouncementScreen() {
     "December",
   ];
 
-  const { data, isFetching, isSuccess, refetch } = useQuery({
-    queryKey: ["announcementDetails"],
-    queryFn: getAllAnnouncements,
+  const { data, isFetching, isSuccess, isLoading, refetch } = useQuery({
+    queryKey: ["institutionAnnouncements", selectedInstitution?._id],
+    queryFn: () =>
+      announcementService.getInstitutionAnnouncements(selectedInstitution?._id),
+    enabled: !!selectedInstitution?._id,
   });
 
   const [refreshing, setRefreshing] = useState(false);
@@ -144,6 +150,11 @@ export default function AnnouncementScreen() {
   const handleAnnouncementPress = (announcement) => {
     navigation.navigate("AnnouncementDetails", { announcement });
   };
+
+  // Show skeleton while initial loading (not refreshing)
+  if (isLoading && !refreshing) {
+    return <AnnouncementListSkeleton />;
+  }
 
   return (
     <View style={themedStyles.container}>

@@ -17,6 +17,8 @@ import { profileService } from "../api/profile";
 import { authService } from "../api/auth";
 import { useTheme } from "../contexts/ThemeContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { ProfileSkeleton } from "../loading-skeletons";
+import { baseUrl } from "../api/baseUrl";
 
 export default function ProfileScreen({ navigation, handleLogout }) {
   const [isNotificationsEnabled, setIsNotificationsEnabled] = useState(false);
@@ -102,12 +104,7 @@ export default function ProfileScreen({ navigation, handleLogout }) {
   const themedStyles = createThemedStyles(theme);
 
   if (isLoading) {
-    return (
-      <View style={themedStyles.centerContainer}>
-        <ActivityIndicator size="large" color={theme.primary} />
-        <Text style={themedStyles.loadingText}>Loading profile...</Text>
-      </View>
-    );
+    return <ProfileSkeleton />;
   }
 
   if (error) {
@@ -130,7 +127,7 @@ export default function ProfileScreen({ navigation, handleLogout }) {
         <View style={themedStyles.profileImageContainer}>
           {profile?.image ? (
             <Image
-              source={{ uri: profile.image }}
+              source={{ uri: baseUrl + profile.image }}
               style={themedStyles.profileImage}
             />
           ) : (
@@ -228,7 +225,7 @@ export default function ProfileScreen({ navigation, handleLogout }) {
       )}
 
       {/* Settings Section */}
-      <View style={themedStyles.section}>
+      {/* <View style={themedStyles.section}>
         <Text style={themedStyles.sectionTitle}>Settings</Text>
 
         <View style={themedStyles.settingItem}>
@@ -284,7 +281,7 @@ export default function ProfileScreen({ navigation, handleLogout }) {
             color={theme.textSecondary}
           />
         </TouchableOpacity>
-      </View>
+      </View> */}
 
       {/* Social Section */}
       <View style={themedStyles.socialSection}>
@@ -309,12 +306,12 @@ export default function ProfileScreen({ navigation, handleLogout }) {
       </View>
 
       {/* Logout Button */}
-      <TouchableOpacity
+      {/* <TouchableOpacity
         style={themedStyles.logoutButton}
         onPress={handleLogout}>
         <Ionicons name="log-out-outline" size={20} color="#fff" />
         <Text style={themedStyles.logoutText}>Logout</Text>
-      </TouchableOpacity>
+      </TouchableOpacity> */}
 
       {/* Danger Zone */}
       <View style={themedStyles.dangerZone}>

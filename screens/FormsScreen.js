@@ -14,17 +14,22 @@ import { formSubmissionsService } from "../api/formSubmissions";
 import { authService } from "../api/auth";
 import { useTheme } from "../contexts/ThemeContext";
 import { Ionicons } from "@expo/vector-icons";
+import { SubmissionListSkeleton } from "../loading-skeletons";
+import { institutionsService } from "../api/institutions";
+import { useInstitution } from "../contexts/InstitutionContext";
 
 export default function FormsScreen({ navigation }) {
   const [selectedTab, setSelectedTab] = React.useState("pending");
   const [showDeleteButton, setShowDeleteButton] = React.useState({});
   const { theme } = useTheme();
   const queryClient = useQueryClient();
-
+  const { selectedInstitution } = useInstitution();
   // Get forms data
   const { data, isLoading, error, refetch } = useQuery({
-    queryKey: ["formsSubmissions"],
-    queryFn: formSubmissionsService.getResidentSubmissions,
+    queryKey: ["formsSubmissions", selectedInstitution?._id],
+    queryFn: () =>
+      institutionsService.getInstitutionSubmissions(selectedInstitution?._id),
+    enabled: !!selectedInstitution?._id,
   });
 
   const [refreshing, setRefreshing] = React.useState(false);
@@ -87,11 +92,7 @@ export default function FormsScreen({ navigation }) {
   const themedStyles = createThemedStyles(theme);
 
   if (isLoading && !refreshing) {
-    return (
-      <View style={themedStyles.container}>
-        <Text style={themedStyles.messageText}>Loading forms...</Text>
-      </View>
-    );
+    return <SubmissionListSkeleton />;
   }
 
   if (error) {

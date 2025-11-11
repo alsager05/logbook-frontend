@@ -80,6 +80,7 @@ export const authService = {
       }
 
       const decodedUser = jwtDecode(token);
+
       // console.log("decodedUser is this one", decodedUser);
       return {
         id: decodedUser.id,
