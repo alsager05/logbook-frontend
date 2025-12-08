@@ -92,7 +92,7 @@ export default function FormScreen({ route, navigation }) {
     enabled: !!user && isResident(user.role),
   });
 
-  // Add this query for the form template
+  // Add this query for the form template with level restriction error handling
   const {
     data: template,
     isLoading: isLoadingTemplate,
@@ -100,10 +100,22 @@ export default function FormScreen({ route, navigation }) {
   } = useQuery({
     queryKey: ["formTemplate", formId],
     queryFn: async () => {
-      const response = await formsService.getFormById(formId);
-      return response;
+      try {
+        const response = await formsService.getFormById(formId);
+        return response;
+      } catch (error) {
+        // Check if it's a level restriction error
+        if (error.response?.data?.requiredLevel) {
+          throw {
+            isLevelRestriction: true,
+            ...error.response.data,
+          };
+        }
+        throw error;
+      }
     },
     enabled: !!formId,
+    retry: false, // Don't retry level restriction errors
   });
   // Handle form submission
   const handleSubmit = async () => {
@@ -224,21 +236,53 @@ export default function FormScreen({ route, navigation }) {
           />
         );
       case "select":
+        // Use availableOptions (filtered by backend) instead of options
+        const selectOptions = field.availableOptions || field.options || [];
+
+        // Handle empty options (all restricted)
+        if (selectOptions.length === 0) {
+          return (
+            <View>
+              <View style={themedStyles.warningContainer}>
+                <Ionicons name="alert-circle" size={16} color={theme.warning} />
+                <Text style={themedStyles.warningText}>
+                  No options available for your current level
+                </Text>
+              </View>
+            </View>
+          );
+        }
+
         return (
-          <View
-            style={[
-              themedStyles.selectContainer,
-              isReadOnly && themedStyles.inputDisabled,
-            ]}>
-            <CustomDropdown
-              options={field.options || []}
-              selectedValue={formData[field.name] || ""}
-              onValueChange={(value) =>
-                !isReadOnly && handleInputChange(field.name, value)
-              }
-              placeholder={`Select ${field.name}`}
-              disabled={isReadOnly}
-            />
+          <View>
+            {/* Show hint if field has level restrictions */}
+            {field.hasLevelRestrictions && (
+              <View style={themedStyles.hintContainer}>
+                <Ionicons
+                  name="information-circle-outline"
+                  size={14}
+                  color={theme.textSecondary}
+                />
+                <Text style={themedStyles.hintText}>
+                  Some options may be hidden based on your level
+                </Text>
+              </View>
+            )}
+            <View
+              style={[
+                themedStyles.selectContainer,
+                isReadOnly && themedStyles.inputDisabled,
+              ]}>
+              <CustomDropdown
+                options={selectOptions.map((opt) => opt.value || opt)}
+                selectedValue={formData[field.name] || ""}
+                onValueChange={(value) =>
+                  !isReadOnly && handleInputChange(field.name, value)
+                }
+                placeholder={`Select ${field.name}`}
+                disabled={isReadOnly}
+              />
+            </View>
           </View>
         );
 
@@ -352,10 +396,56 @@ export default function FormScreen({ route, navigation }) {
     );
   }
 
+  // Handle level restriction error specifically
+  if (templateError?.isLevelRestriction) {
+    return (
+      <View style={themedStyles.errorContainer}>
+        <Ionicons name="lock-closed" size={64} color={theme.textSecondary} />
+        <Text style={themedStyles.errorTitle}>Form Restricted</Text>
+        <Text style={themedStyles.errorMessage}>
+          {templateError.message ||
+            "This form requires a higher training level"}
+        </Text>
+
+        {templateError.requiredLevel && (
+          <View style={themedStyles.levelInfoBox}>
+            <View style={themedStyles.levelInfoRow}>
+              <Text style={themedStyles.levelInfoLabel}>Required Level:</Text>
+              <Text style={themedStyles.levelInfoValue}>
+                {templateError.requiredLevel}
+              </Text>
+            </View>
+            <View style={themedStyles.levelInfoRow}>
+              <Text style={themedStyles.levelInfoLabel}>Your Level:</Text>
+              <Text style={themedStyles.levelInfoValue}>
+                {templateError.userLevel || "Not Set"}
+              </Text>
+            </View>
+          </View>
+        )}
+
+        <Text style={themedStyles.errorHint}>
+          Contact your supervisor to update your level
+        </Text>
+
+        <TouchableOpacity
+          style={themedStyles.primaryButton}
+          onPress={() => navigation.goBack()}>
+          <Text style={themedStyles.primaryButtonText}>Go Back</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
+  // Handle other errors
   if (templateError || tutorError) {
     return (
       <View style={themedStyles.errorContainer}>
-        <Text>Error: {templateError?.message || tutorError?.message}</Text>
+        <Ionicons name="alert-circle" size={64} color={theme.error} />
+        <Text style={themedStyles.errorTitle}>Error</Text>
+        <Text style={themedStyles.errorMessage}>
+          {templateError?.message || tutorError?.message}
+        </Text>
         <TouchableOpacity
           style={themedStyles.retryButton}
           onPress={() => {
@@ -669,6 +759,97 @@ const createThemedStyles = (theme) =>
       flex: 1,
       justifyContent: "center",
       alignItems: "center",
+      padding: 20,
+    },
+    errorTitle: {
+      fontSize: 24,
+      fontWeight: "bold",
+      color: theme.text,
+      marginTop: 16,
+      marginBottom: 8,
+      textAlign: "center",
+    },
+    errorMessage: {
+      fontSize: 16,
+      color: theme.textSecondary,
+      textAlign: "center",
+      marginBottom: 20,
+      lineHeight: 24,
+      paddingHorizontal: 20,
+    },
+    errorHint: {
+      fontSize: 14,
+      color: theme.textSecondary,
+      textAlign: "center",
+      marginTop: 12,
+      marginBottom: 24,
+      fontStyle: "italic",
+    },
+    levelInfoBox: {
+      backgroundColor: theme.surfaceVariant,
+      padding: 16,
+      borderRadius: 8,
+      borderWidth: 1,
+      borderColor: theme.border,
+      marginVertical: 16,
+      minWidth: 250,
+    },
+    levelInfoRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      marginVertical: 6,
+    },
+    levelInfoLabel: {
+      fontSize: 15,
+      fontWeight: "600",
+      color: theme.textSecondary,
+    },
+    levelInfoValue: {
+      fontSize: 15,
+      fontWeight: "bold",
+      color: theme.primary,
+    },
+    primaryButton: {
+      backgroundColor: theme.primary,
+      paddingHorizontal: 32,
+      paddingVertical: 14,
+      borderRadius: 8,
+      minWidth: 150,
+      alignItems: "center",
+    },
+    primaryButtonText: {
+      color: "#fff",
+      fontSize: 16,
+      fontWeight: "600",
+    },
+    hintContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 6,
+      backgroundColor: theme.surfaceVariant,
+      padding: 8,
+      borderRadius: 6,
+      marginBottom: 8,
+    },
+    hintText: {
+      fontSize: 12,
+      color: theme.textSecondary,
+      fontStyle: "italic",
+    },
+    warningContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 8,
+      backgroundColor: theme.warningContainer || "#FEF3C7",
+      padding: 12,
+      borderRadius: 8,
+      borderWidth: 1,
+      borderColor: theme.warning || "#F59E0B",
+    },
+    warningText: {
+      fontSize: 14,
+      color: theme.warningText || "#92400E",
+      flex: 1,
     },
     retryButton: {
       backgroundColor: theme.text,

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -19,13 +19,38 @@ import { useTheme } from "../contexts/ThemeContext";
 import { baseUrl } from "../api/baseUrl";
 
 export default function EditProfileScreen({ route, navigation }) {
-  const { profile } = route.params;
+  const { profile } = route.params || {};
   const [username, setUsername] = useState(profile?.username || "");
   const [email, setEmail] = useState(profile?.email || "");
   const [phone, setPhone] = useState(profile?.phone || "");
   const [selectedImage, setSelectedImage] = useState(null);
+  const [loadingProfile, setLoadingProfile] = useState(!profile);
   const { theme } = useTheme();
   const queryClient = useQueryClient();
+
+  // Fetch profile if not provided via route params
+  useEffect(() => {
+    const fetchProfile = async () => {
+      if (profile) {
+        setLoadingProfile(false);
+        return;
+      }
+      try {
+        setLoadingProfile(true);
+        const fetched = await profileService.getProfile();
+        setUsername(fetched?.username || "");
+        setEmail(fetched?.email || "");
+        setPhone(fetched?.phone || "");
+      } catch (error) {
+        console.error("Error loading profile:", error);
+        Alert.alert("Error", "Failed to load profile");
+      } finally {
+        setLoadingProfile(false);
+      }
+    };
+
+    fetchProfile();
+  }, [profile]);
 
   // Update profile mutation
   const updateMutation = useMutation({
@@ -109,6 +134,15 @@ export default function EditProfileScreen({ route, navigation }) {
   };
 
   const themedStyles = createThemedStyles(theme);
+
+  if (loadingProfile) {
+    return (
+      <View style={themedStyles.loadingContainer}>
+        <ActivityIndicator size="large" color={theme.primary} />
+        <Text style={themedStyles.loadingText}>Loading profile...</Text>
+      </View>
+    );
+  }
 
   return (
     <ScrollView style={themedStyles.container}>
@@ -372,5 +406,16 @@ const createThemedStyles = (theme) =>
       fontSize: 12,
       color: theme.textSecondary,
       lineHeight: 18,
+    },
+    loadingContainer: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+      backgroundColor: theme.surfaceVariant,
+    },
+    loadingText: {
+      marginTop: 12,
+      fontSize: 16,
+      color: theme.textSecondary,
     },
   });

@@ -17,8 +17,13 @@ export default function SettingsScreen({ navigation }) {
   const themedStyles = createThemedStyles(theme);
 
   // Helper function to navigate to Profile stack screens
-  const navigateToProfile = (screen) => {
-    navigation.getParent()?.navigate("Profile", { screen });
+  const navigateToProfile = (screen, params = {}) => {
+    navigation.getParent()?.navigate("Profile", { screen, params });
+  };
+
+  // Helper function to navigate within Settings stack
+  const navigateToSettings = (screen) => {
+    navigation.navigate(screen);
   };
 
   const settingsOptions = [
@@ -28,17 +33,13 @@ export default function SettingsScreen({ navigation }) {
         {
           icon: "person-outline",
           title: "Edit Profile",
-          onPress: () => navigateToProfile("EditProfile"),
+          onPress: () =>
+            navigateToProfile("EditProfile", { fromSettings: true }),
         },
         {
           icon: "lock-closed-outline",
           title: "Change Password",
-          onPress: () => {
-            Alert.alert(
-              "Change Password",
-              "This feature will be available soon."
-            );
-          },
+          onPress: () => navigateToSettings("ChangePassword"),
         },
         {
           icon: "trash-outline",
@@ -71,12 +72,12 @@ export default function SettingsScreen({ navigation }) {
         {
           icon: "information-circle-outline",
           title: "About Us",
-          onPress: () => navigateToProfile("AboutUs"),
+          onPress: () => navigateToSettings("AboutUs"),
         },
         {
           icon: "shield-checkmark-outline",
           title: "Privacy Policy",
-          onPress: () => navigateToProfile("PrivacyPolicy"),
+          onPress: () => navigateToSettings("PrivacyPolicy"),
         },
       ],
     },

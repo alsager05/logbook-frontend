@@ -12,6 +12,7 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import { institutionsService } from "../api/institutions";
 import { useTheme } from "../contexts/ThemeContext";
+import { useInstitution } from "../contexts/InstitutionContext";
 import { Ionicons } from "@expo/vector-icons";
 import { FormListSkeleton } from "../loading-skeletons";
 
@@ -19,6 +20,10 @@ export default function InstitutionFormsScreen({ navigation, route }) {
   const { institutionId, institutionName, institutionLogo } = route.params;
   const [refreshing, setRefreshing] = useState(false);
   const { theme } = useTheme();
+  const { selectedInstitution } = useInstitution();
+
+  // Get user's level for this institution
+  const userLevel = selectedInstitution?.userLevel || "";
 
   // Fetch institution forms
   const {
@@ -71,6 +76,23 @@ export default function InstitutionFormsScreen({ navigation, route }) {
 
   return (
     <View style={themedStyles.container}>
+      {/* Level Info Header */}
+      {userLevel && (
+        <View style={themedStyles.levelHeader}>
+          <View style={themedStyles.levelInfoContainer}>
+            <Ionicons name="school" size={20} color={theme.primary} />
+            <View style={themedStyles.levelTextContainer}>
+              <Text style={themedStyles.levelTitle}>
+                Your Level: {userLevel}
+              </Text>
+              <Text style={themedStyles.levelSubtitle}>
+                Showing forms for {userLevel} and below
+              </Text>
+            </View>
+          </View>
+        </View>
+      )}
+
       {/* Forms List */}
       <ScrollView
         style={themedStyles.scrollView}
@@ -156,6 +178,31 @@ const createThemedStyles = (theme) =>
     container: {
       flex: 1,
       backgroundColor: theme.surfaceVariant,
+    },
+    levelHeader: {
+      backgroundColor: theme.card,
+      paddingVertical: 12,
+      paddingHorizontal: 16,
+      borderBottomWidth: 1,
+      borderBottomColor: theme.border,
+    },
+    levelInfoContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 12,
+    },
+    levelTextContainer: {
+      flex: 1,
+    },
+    levelTitle: {
+      fontSize: 15,
+      fontWeight: "600",
+      color: theme.text,
+      marginBottom: 2,
+    },
+    levelSubtitle: {
+      fontSize: 13,
+      color: theme.textSecondary,
     },
     centerContainer: {
       flex: 1,

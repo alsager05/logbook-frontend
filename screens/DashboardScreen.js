@@ -72,7 +72,9 @@ export default function DashboardScreen({ navigation, role }) {
   const user = userInfo || {};
 
   const userName = user.username || "User";
-  const userLevel = user.level || user.year || "N/A";
+  // Use institution-specific level instead of global level
+  const userLevel =
+    selectedInstitution?.userLevel || user.level || user.year || "N/A";
   const userSupervisor = user.supervisor || "N/A";
 
   const themedStyles = createThemedStyles(theme);

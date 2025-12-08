@@ -13,6 +13,7 @@ import CustomDrawerContent from "../components/CustomDrawerContent";
 import ProfileScreen from "../screens/ProfileScreen";
 import EditProfileScreen from "../screens/EditProfileScreen";
 import DeleteAccountScreen from "../screens/DeleteAccountScreen";
+import ChangePasswordScreen from "../screens/ChangePasswordScreen";
 import AboutUsScreen from "../screens/AboutUsScreen";
 import PrivacyPolicyScreen from "../screens/PrivacyPolicyScreen";
 import SettingsScreen from "../screens/SettingsScreen";
@@ -61,16 +62,6 @@ function ProfileStack({ handleLogout, navigation }) {
         component={DeleteAccountScreen}
         options={{ headerTitle: "Delete Account" }}
       />
-      <Stack.Screen
-        name="AboutUs"
-        component={AboutUsScreen}
-        options={{ headerTitle: "About Us" }}
-      />
-      <Stack.Screen
-        name="PrivacyPolicy"
-        component={PrivacyPolicyScreen}
-        options={{ headerTitle: "Privacy Policy" }}
-      />
     </Stack.Navigator>
   );
 }
@@ -104,6 +95,21 @@ function SettingsStack({ navigation }) {
             </TouchableOpacity>
           ),
         }}
+      />
+      <Stack.Screen
+        name="ChangePassword"
+        component={ChangePasswordScreen}
+        options={{ headerTitle: "Change Password" }}
+      />
+      <Stack.Screen
+        name="AboutUs"
+        component={AboutUsScreen}
+        options={{ headerTitle: "About Us" }}
+      />
+      <Stack.Screen
+        name="PrivacyPolicy"
+        component={PrivacyPolicyScreen}
+        options={{ headerTitle: "Privacy Policy" }}
       />
     </Stack.Navigator>
   );

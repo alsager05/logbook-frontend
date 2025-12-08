@@ -149,12 +149,59 @@ export default function CustomDrawerContent({ navigation, handleLogout }) {
                     </Text>
                   </View>
                 )}
-                <Text
-                  style={themedStyles.institutionName}
-                  numberOfLines={1}
-                  ellipsizeMode="tail">
-                  {institution.name}
-                </Text>
+                <View style={themedStyles.institutionInfo}>
+                  <Text
+                    style={themedStyles.institutionName}
+                    numberOfLines={1}
+                    ellipsizeMode="tail">
+                    {institution.name}
+                  </Text>
+                  {/* Display level and role badges */}
+                  <View style={themedStyles.badgesContainer}>
+                    {institution.userRole && (
+                      <View
+                        style={[
+                          themedStyles.roleBadge,
+                          {
+                            backgroundColor:
+                              institution.userRole.toLowerCase() === "admin"
+                                ? "#EF444420"
+                                : institution.userRole.toLowerCase() === "tutor"
+                                ? "#3B82F620"
+                                : "#10B98120",
+                          },
+                        ]}>
+                        <Text
+                          style={[
+                            themedStyles.roleBadgeText,
+                            {
+                              color:
+                                institution.userRole.toLowerCase() === "admin"
+                                  ? "#EF4444"
+                                  : institution.userRole.toLowerCase() ===
+                                    "tutor"
+                                  ? "#3B82F6"
+                                  : "#10B981",
+                            },
+                          ]}>
+                          {institution.userRole}
+                        </Text>
+                      </View>
+                    )}
+                    {institution.userLevel && (
+                      <View style={themedStyles.levelBadge}>
+                        <Ionicons
+                          name="school-outline"
+                          size={12}
+                          color={theme.primary}
+                        />
+                        <Text style={themedStyles.levelBadgeText}>
+                          {institution.userLevel}
+                        </Text>
+                      </View>
+                    )}
+                  </View>
+                </View>
               </TouchableOpacity>
             ))
           )}
@@ -309,11 +356,44 @@ const createThemedStyles = (theme) =>
       fontSize: 18,
       fontWeight: "bold",
     },
-    institutionName: {
+    institutionInfo: {
       flex: 1,
+      justifyContent: "center",
+    },
+    institutionName: {
       fontSize: 15,
       fontWeight: "600",
       color: theme.text,
+      marginBottom: 4,
+    },
+    badgesContainer: {
+      flexDirection: "row",
+      gap: 6,
+      flexWrap: "wrap",
+    },
+    levelBadge: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: theme.primaryContainer || theme.surfaceVariant,
+      paddingHorizontal: 8,
+      paddingVertical: 3,
+      borderRadius: 12,
+      gap: 4,
+    },
+    levelBadgeText: {
+      fontSize: 11,
+      fontWeight: "600",
+      color: theme.primary,
+    },
+    roleBadge: {
+      paddingHorizontal: 8,
+      paddingVertical: 3,
+      borderRadius: 12,
+    },
+    roleBadgeText: {
+      fontSize: 10,
+      fontWeight: "600",
+      textTransform: "capitalize",
     },
     navigationSection: {
       borderTopWidth: 1,
