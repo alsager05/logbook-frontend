@@ -159,28 +159,28 @@ export default function RegisterScreen({ navigation, onRegisterSuccess }) {
 
   return (
     <SafeAreaView style={themedStyles.safeArea} edges={["top"]}>
+      {/* Fixed Header - Outside ScrollView */}
+      <View style={themedStyles.header}>
+        <TouchableOpacity
+          style={themedStyles.backButton}
+          onPress={() => {
+            if (navigation) {
+              navigation.goBack();
+            } else if (onRegisterSuccess) {
+              onRegisterSuccess();
+            }
+          }}>
+          <Ionicons name="arrow-back" size={24} color={theme.text} />
+        </TouchableOpacity>
+        <Text style={themedStyles.headerTitle}>Create Account</Text>
+        <View style={{ width: 40 }} />
+      </View>
+
       <ScrollView
         style={themedStyles.scrollView}
         contentContainerStyle={themedStyles.scrollContent}
         showsVerticalScrollIndicator={false}>
         <View style={themedStyles.container}>
-          {/* Header */}
-          <View style={themedStyles.header}>
-            <TouchableOpacity
-              style={themedStyles.backButton}
-              onPress={() => {
-                if (navigation) {
-                  navigation.goBack();
-                } else if (onRegisterSuccess) {
-                  onRegisterSuccess();
-                }
-              }}>
-              <Ionicons name="arrow-back" size={24} color={theme.text} />
-            </TouchableOpacity>
-            <Text style={themedStyles.headerTitle}>Create Account</Text>
-            <View style={{ width: 40 }} />
-          </View>
-
           {/* Profile Image Picker */}
           <View style={themedStyles.imageSection}>
             <TouchableOpacity

@@ -18,6 +18,7 @@ export const institutionsService = {
     try {
       const response = await api.get("/institutions/me");
       const institutions = response.data.institutions;
+      //   console.log("institutions is this one", institutions);
       return Array.isArray(institutions) ? institutions : [];
     } catch (error) {
       console.error("Error fetching my institutions:", error);

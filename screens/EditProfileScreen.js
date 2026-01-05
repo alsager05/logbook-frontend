@@ -23,6 +23,7 @@ export default function EditProfileScreen({ route, navigation }) {
   const [username, setUsername] = useState(profile?.username || "");
   const [email, setEmail] = useState(profile?.email || "");
   const [phone, setPhone] = useState(profile?.phone || "");
+  const [name, setName] = useState(profile?.name || "");
   const [selectedImage, setSelectedImage] = useState(null);
   const [loadingProfile, setLoadingProfile] = useState(!profile);
   const { theme } = useTheme();
@@ -41,6 +42,7 @@ export default function EditProfileScreen({ route, navigation }) {
         setUsername(fetched?.username || "");
         setEmail(fetched?.email || "");
         setPhone(fetched?.phone || "");
+        setName(fetched?.name || "");
       } catch (error) {
         console.error("Error loading profile:", error);
         Alert.alert("Error", "Failed to load profile");
@@ -124,12 +126,13 @@ export default function EditProfileScreen({ route, navigation }) {
       username: username.trim(),
       email: email.trim(),
       phone: phone.trim(),
+      name: name.trim(),
     };
 
     if (selectedImage) {
       updateData.image = selectedImage;
     }
-
+    console.log("updateData is this one", updateData);
     updateMutation.mutate(updateData);
   };
 
@@ -151,7 +154,12 @@ export default function EditProfileScreen({ route, navigation }) {
         <View style={themedStyles.imageContainer}>
           {selectedImage || profile?.image ? (
             <Image
-              source={{ uri: selectedImage || baseUrl + profile.image }}
+              source={{
+                uri:
+                  selectedImage || profile.image
+                    ? baseUrl + profile.image
+                    : undefined,
+              }}
               style={themedStyles.profileImage}
             />
           ) : (
@@ -170,6 +178,23 @@ export default function EditProfileScreen({ route, navigation }) {
 
       {/* Form Section */}
       <View style={themedStyles.formSection}>
+        <View style={themedStyles.inputGroup}>
+          <Text style={themedStyles.label}>Name</Text>
+          <View style={themedStyles.inputContainer}>
+            <Ionicons
+              name="person-outline"
+              size={20}
+              color={theme.textSecondary}
+            />
+            <TextInput
+              style={themedStyles.input}
+              value={name}
+              onChangeText={setName}
+              placeholder="Enter name"
+              placeholderTextColor={theme.textSecondary}
+            />
+          </View>
+        </View>
         <View style={themedStyles.inputGroup}>
           <Text style={themedStyles.label}>
             Username <Text style={themedStyles.required}>*</Text>

@@ -20,7 +20,7 @@ export const profileService = {
       if (data.username) formData.append("username", data.username);
       if (data.email) formData.append("email", data.email);
       if (data.phone) formData.append("phone", data.phone);
-
+      if (data.name) formData.append("name", data.name);
       if (data.image) {
         // Handle image upload for React Native
         const imageData = {

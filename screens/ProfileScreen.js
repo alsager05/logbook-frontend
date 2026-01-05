@@ -107,6 +107,8 @@ export default function ProfileScreen({ navigation, handleLogout }) {
     return <ProfileSkeleton />;
   }
 
+  console.log("profile is this one", baseUrl + profile.image);
+
   if (error) {
     return (
       <View style={themedStyles.centerContainer}>
@@ -127,7 +129,9 @@ export default function ProfileScreen({ navigation, handleLogout }) {
         <View style={themedStyles.profileImageContainer}>
           {profile?.image ? (
             <Image
-              source={{ uri: baseUrl + profile.image }}
+              source={{
+                uri: profile.image ? baseUrl + profile.image : undefined,
+              }}
               style={themedStyles.profileImage}
             />
           ) : (
@@ -136,7 +140,9 @@ export default function ProfileScreen({ navigation, handleLogout }) {
             </View>
           )}
         </View>
-        <Text style={themedStyles.profileName}>{profile?.username}</Text>
+        <Text style={themedStyles.profileName}>
+          {profile?.name || profile?.username}
+        </Text>
         <View style={themedStyles.roleBadge}>
           <Text style={themedStyles.roleBadgeText}>
             {profile?.roles?.[0]?.toUpperCase() || "USER"}
@@ -154,6 +160,19 @@ export default function ProfileScreen({ navigation, handleLogout }) {
       <View style={themedStyles.section}>
         <Text style={themedStyles.sectionTitle}>Profile Information</Text>
 
+        <View style={themedStyles.infoItem}>
+          <Ionicons
+            name="person-outline"
+            size={20}
+            color={theme.textSecondary}
+          />
+          <View style={themedStyles.infoContent}>
+            <Text style={themedStyles.infoLabel}>Name</Text>
+            <Text style={themedStyles.infoValue}>
+              {profile?.name || "Not provided"}
+            </Text>
+          </View>
+        </View>
         <View style={themedStyles.infoItem}>
           <Ionicons name="mail-outline" size={20} color={theme.textSecondary} />
           <View style={themedStyles.infoContent}>
@@ -184,7 +203,7 @@ export default function ProfileScreen({ navigation, handleLogout }) {
             <View style={themedStyles.infoContent}>
               <Text style={themedStyles.infoLabel}>Supervisor</Text>
               <Text style={themedStyles.infoValue}>
-                {profile.supervisor.username}
+                {profile.supervisor.name || profile.supervisor.username}
               </Text>
             </View>
           </View>

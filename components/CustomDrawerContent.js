@@ -78,7 +78,7 @@ export default function CustomDrawerContent({ navigation, handleLogout }) {
         )}
         <View style={themedStyles.userInfo}>
           <Text style={themedStyles.userName}>
-            {profile?.username || "Loading..."}
+            {profile?.name || profile?.username || "Loading..."}
           </Text>
           <Text style={themedStyles.userEmail}>
             {profile?.email || "Tap to view profile"}
